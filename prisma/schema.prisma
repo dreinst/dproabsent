@@ -1,0 +1,102 @@
+// dproabsent: absensi crew D'Production berbasis web (lokasi + foto).
+// Pengganti kolom ajaib checkAbsent (1/2) dari sistem lama:
+//   status faktual = enum HadirStatus, pengesahan = verifiedBy/verifiedAt (null = belum).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  OWNER
+  SUPERADMIN
+  CREW
+}
+
+enum HadirStatus {
+  HADIR
+  TERLAMBAT
+  TIDAK_HADIR
+}
+
+enum AbsenKind {
+  MASUK
+  CHECKPOINT
+  PULANG
+}
+
+// Satu akun bisa login. Crew pakai nomor HP; owner/superadmin juga.
+model User {
+  id           Int        @id @default(autoincrement())
+  name         String
+  phone        String     @unique // normalisasi 62xxxxxxxxxx
+  passwordHash String
+  role         Role       @default(CREW)
+  bankAccount  String? // hanya terlihat owner & superadmin
+  active       Boolean    @default(true)
+  legacyId     Int?       @unique // id pegawai di dpro.sql
+  createdAt    DateTime   @default(now())
+  absensi      Absensi[]
+  verified     Absensi[]  @relation("verifier")
+}
+
+// Satu acara, dengan titik lokasi dan radius absen (meter).
+model Event {
+  id        Int       @id @default(autoincrement())
+  name      String
+  client    String?
+  lat       Float
+  lng       Float
+  radiusM   Int       @default(150) // batas jarak absen dianggap di lokasi
+  startAt   DateTime
+  endAt     DateTime?
+  active    Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  sessions  Session[]
+}
+
+// Sesi tugas dalam satu acara (Loading, Gladi, Event, dst).
+// checkpointMinutes: interval titik cek; 0 = tanpa titik cek berkala.
+model Session {
+  id                Int       @id @default(autoincrement())
+  eventId           Int
+  event             Event     @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  jobdesc           String
+  startAt           DateTime
+  endAt             DateTime
+  checkpointMinutes Int       @default(0)
+  graceMinutes      Int       @default(15) // ambang telat sebelum status TERLAMBAT
+  absensi           Absensi[]
+
+  @@index([eventId])
+}
+
+model Absensi {
+  id          Int         @id @default(autoincrement())
+  sessionId   Int
+  session     Session     @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  userId      Int
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kind        AbsenKind   @default(MASUK)
+  status      HadirStatus @default(HADIR)
+  checkedAt   DateTime    @default(now())
+  lat         Float
+  lng         Float
+  distanceM   Int // jarak ke titik acara saat absen
+  insideRadius Boolean    @default(true)
+  photo       String // data URL JPEG hasil kompres di browser
+  photoHash   String // sha256 isi foto, untuk menolak foto identik
+  note        String? // catatan otomatis: telat, di luar radius, titik cek terlewat
+  verifiedById Int?
+  verifiedBy  User?       @relation("verifier", fields: [verifiedById], references: [id])
+  verifiedAt  DateTime?
+  createdAt   DateTime    @default(now())
+
+  @@index([sessionId])
+  @@index([userId])
+  @@index([photoHash])
+}
