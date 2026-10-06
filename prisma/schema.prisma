@@ -43,6 +43,7 @@ model User {
   createdAt    DateTime   @default(now())
   absensi      Absensi[]
   verified     Absensi[]  @relation("verifier")
+  pushSubs     PushSubscription[]
 }
 
 // Satu acara, dengan titik lokasi dan radius absen (meter).
@@ -87,11 +88,13 @@ model Absensi {
   checkedAt   DateTime    @default(now())
   lat         Float
   lng         Float
+  accuracyM   Int? // akurasi GPS yang dilaporkan browser (meter)
   distanceM   Int // jarak ke titik acara saat absen
   insideRadius Boolean    @default(true)
   photo       String // data URL JPEG hasil kompres di browser
   photoHash   String // sha256 isi foto, untuk menolak foto identik
-  note        String? // catatan otomatis: telat, di luar radius, titik cek terlewat
+  activity    String? // keterangan dari crew: sedang mengerjakan apa
+  note        String? // catatan otomatis: telat, di luar radius, akurasi rendah, titik cek terlewat
   verifiedById Int?
   verifiedBy  User?       @relation("verifier", fields: [verifiedById], references: [id])
   verifiedAt  DateTime?
@@ -100,4 +103,17 @@ model Absensi {
   @@index([sessionId])
   @@index([userId])
   @@index([photoHash])
+}
+
+// Langganan Web Push per perangkat crew, untuk pengingat absen.
+model PushSubscription {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+
+  @@index([userId])
 }

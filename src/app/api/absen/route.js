@@ -11,7 +11,7 @@ export async function POST(req) {
   if (!user) return NextResponse.json({ error: "Belum masuk." }, { status: 401 });
 
   const body = await req.json().catch(() => ({}));
-  const { sessionId, kind, lat, lng, photo } = body;
+  const { sessionId, kind, lat, lng, photo, activity, accuracyM } = body;
 
   if (!sessionId || !KINDS.includes(kind)) {
     return NextResponse.json({ error: "Data absen tidak lengkap." }, { status: 400 });
@@ -48,8 +48,10 @@ export async function POST(req) {
   const insideRadius = distanceM <= ev.radiusM;
   const now = new Date();
 
+  const acc = Number.isFinite(accuracyM) ? Math.round(accuracyM) : null;
   const notes = [];
   if (!insideRadius) notes.push(`Di luar radius (${distanceM} m dari titik, batas ${ev.radiusM} m)`);
+  if (acc && acc > 100) notes.push(`Akurasi GPS rendah (${acc} m), lokasi kurang pasti`);
 
   let status = "HADIR";
   if (kind === "MASUK") {
@@ -86,10 +88,12 @@ export async function POST(req) {
       status,
       lat,
       lng,
+      accuracyM: acc,
       distanceM,
       insideRadius,
       photo,
       photoHash,
+      activity: (activity || "").trim().slice(0, 300) || null,
       note: notes.join(". ") || null,
     },
   });

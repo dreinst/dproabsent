@@ -7,6 +7,9 @@ const jakarta = Plus_Jakarta_Sans({ subsets: ["latin"], variable: "--font-jakart
 export const metadata = {
   title: "DPro Absen",
   description: "Absensi crew D'Production berbasis lokasi dan foto",
+  manifest: "/manifest.webmanifest",
+  icons: { icon: "/icon-192.png", apple: "/icon-192.png" },
+  appleWebApp: { capable: true, statusBarStyle: "default", title: "DPro Absen" },
 };
 
 export const viewport = {

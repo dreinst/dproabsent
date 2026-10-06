@@ -18,6 +18,7 @@ export default function AbsenPanel({ session, existing }) {
   const streamRef = useRef(null);
   const [kind, setKind] = useState(null); // aksi yang sedang dijalankan
   const [shot, setShot] = useState(null); // data URL foto
+  const [activity, setActivity] = useState("");
   const [err, setErr] = useState("");
   const [ok, setOk] = useState("");
   const [busy, setBusy] = useState(false);
@@ -31,7 +32,7 @@ export default function AbsenPanel({ session, existing }) {
   if (hasMasuk && !hasPulang) actions.push("PULANG");
 
   async function openCamera(k) {
-    setErr(""); setOk(""); setShot(null); setKind(k);
+    setErr(""); setOk(""); setShot(null); setActivity(""); setKind(k);
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: "environment" }, audio: false,
@@ -98,6 +99,8 @@ export default function AbsenPanel({ session, existing }) {
           kind,
           lat: pos.coords.latitude,
           lng: pos.coords.longitude,
+          accuracyM: pos.coords.accuracy,
+          activity,
           photo: shot,
         }),
       });
@@ -107,7 +110,7 @@ export default function AbsenPanel({ session, existing }) {
         `${LABEL[kind]} tersimpan. Jarak ${data.distanceM} m` +
         (data.insideRadius ? " (di lokasi)." : " (di luar radius, ditandai).")
       );
-      setKind(null); setShot(null);
+      setKind(null); setShot(null); setActivity("");
       router.refresh();
     } catch {
       setErr("Jaringan bermasalah, coba lagi.");
@@ -125,6 +128,7 @@ export default function AbsenPanel({ session, existing }) {
               <b>{LABEL[e.kind]}</b> · {e.checkedAt} ·{" "}
               <span className={`badge ${badgeClass(e.status, e.insideRadius)}`}>{e.status}</span>{" "}
               {e.verified ? <span className="badge ok">sah</span> : <span className="badge muted">belum disahkan</span>}
+              {e.activity && <div style={{ color: "var(--text)", fontSize: 13 }}>Kegiatan: {e.activity}</div>}
               {e.note && <div className="note">{e.note}</div>}
             </div>
           ))}
@@ -166,6 +170,14 @@ export default function AbsenPanel({ session, existing }) {
           ) : (
             <>
               <img className="shot" src={shot} alt="Foto absen" />
+              <label>Sedang mengerjakan apa?</label>
+              <input
+                type="text"
+                placeholder="Contoh: pasang rigging panggung utama"
+                value={activity}
+                onChange={(e) => setActivity(e.target.value)}
+                maxLength={300}
+              />
               <div style={{ height: 10 }} />
               <div className="row">
                 <button className="btn-ok grow" onClick={send} disabled={busy}>

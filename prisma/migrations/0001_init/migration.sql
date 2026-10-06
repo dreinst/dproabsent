@@ -64,16 +64,30 @@ CREATE TABLE "Absensi" (
     "checkedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "lat" DOUBLE PRECISION NOT NULL,
     "lng" DOUBLE PRECISION NOT NULL,
+    "accuracyM" INTEGER,
     "distanceM" INTEGER NOT NULL,
     "insideRadius" BOOLEAN NOT NULL DEFAULT true,
     "photo" TEXT NOT NULL,
     "photoHash" TEXT NOT NULL,
+    "activity" TEXT,
     "note" TEXT,
     "verifiedById" INTEGER,
     "verifiedAt" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Absensi_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "PushSubscription" (
+    "id" SERIAL NOT NULL,
+    "userId" INTEGER NOT NULL,
+    "endpoint" TEXT NOT NULL,
+    "p256dh" TEXT NOT NULL,
+    "auth" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "PushSubscription_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
@@ -94,6 +108,12 @@ CREATE INDEX "Absensi_userId_idx" ON "Absensi"("userId");
 -- CreateIndex
 CREATE INDEX "Absensi_photoHash_idx" ON "Absensi"("photoHash");
 
+-- CreateIndex
+CREATE UNIQUE INDEX "PushSubscription_endpoint_key" ON "PushSubscription"("endpoint");
+
+-- CreateIndex
+CREATE INDEX "PushSubscription_userId_idx" ON "PushSubscription"("userId");
+
 -- AddForeignKey
 ALTER TABLE "Session" ADD CONSTRAINT "Session_eventId_fkey" FOREIGN KEY ("eventId") REFERENCES "Event"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
@@ -105,4 +125,7 @@ ALTER TABLE "Absensi" ADD CONSTRAINT "Absensi_userId_fkey" FOREIGN KEY ("userId"
 
 -- AddForeignKey
 ALTER TABLE "Absensi" ADD CONSTRAINT "Absensi_verifiedById_fkey" FOREIGN KEY ("verifiedById") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "PushSubscription" ADD CONSTRAINT "PushSubscription_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 

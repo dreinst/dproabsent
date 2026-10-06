@@ -3,6 +3,7 @@ import { getCurrentUser, isAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import LogoutButton from "@/components/LogoutButton";
 import AbsenPanel from "@/components/AbsenPanel";
+import EnableReminders from "@/components/EnableReminders";
 
 export const dynamic = "force-dynamic";
 
@@ -40,6 +41,12 @@ export default async function CrewHome() {
         <LogoutButton />
       </div>
 
+      <div className="card">
+        <h2>Pengingat absen</h2>
+        <p className="sub">Nyalakan supaya HP mengingatkanmu absen di setiap titik cek.</p>
+        <EnableReminders vapidPublic={process.env.VAPID_PUBLIC || process.env.NEXT_PUBLIC_VAPID_PUBLIC || ""} />
+      </div>
+
       {sessions.length === 0 && (
         <div className="card">
           <h2>Belum ada sesi aktif</h2>
@@ -68,6 +75,7 @@ export default async function CrewHome() {
               checkedAt: fmt(a.checkedAt),
               distanceM: a.distanceM,
               insideRadius: a.insideRadius,
+              activity: a.activity,
               note: a.note,
               verified: !!a.verifiedAt,
             }))}

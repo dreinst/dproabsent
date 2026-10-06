@@ -65,10 +65,12 @@ export default async function AdminPage() {
                 {fmt(r.checkedAt)} ·{" "}
                 <span className={`badge ${badgeClass(r.status, r.insideRadius)}`}>{r.status}</span>{" "}
                 <span className={`badge ${r.insideRadius ? "muted" : "bad"}`}>{r.distanceM} m</span>{" "}
+                {r.accuracyM != null && <span className="badge muted">akurasi {r.accuracyM} m</span>}{" "}
                 {r.verifiedAt
                   ? <span className="badge ok">sah</span>
                   : <span className="badge warn">belum</span>}
               </div>
+              {r.activity && <div className="meta"><b>Kegiatan:</b> {r.activity}</div>}
               {r.note && <div className="note">{r.note}</div>}
             </div>
           </div>
