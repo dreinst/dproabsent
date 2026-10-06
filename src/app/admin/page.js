@@ -36,9 +36,13 @@ export default async function AdminPage() {
   return (
     <div className="wrap">
       <div className="topbar">
-        <div>
-          <h1>Verifikasi absen</h1>
-          <div className="who">{user.name} · {user.role}</div>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img className="brand-logo" src="/logo-dpro.svg" alt="D'Production" />
+          <div>
+            <h1>Verifikasi absen</h1>
+            <div className="who">{user.name} · {user.role}</div>
+          </div>
         </div>
         <LogoutButton />
       </div>

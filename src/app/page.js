@@ -29,9 +29,13 @@ export default async function CrewHome() {
   return (
     <div className="wrap">
       <div className="topbar">
-        <div>
-          <h1>Absen saya</h1>
-          <div className="who">{user.name}</div>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img className="brand-logo" src="/logo-dpro.svg" alt="D'Production" />
+          <div>
+            <h1>Absen saya</h1>
+            <div className="who">{user.name}</div>
+          </div>
         </div>
         <LogoutButton />
       </div>
