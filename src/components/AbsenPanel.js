@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 const LABEL = { MASUK: "Absen masuk", CHECKPOINT: "Titik cek", PULANG: "Absen pulang" };
@@ -31,21 +31,38 @@ export default function AbsenPanel({ session, existing }) {
   if (hasMasuk && !hasPulang && session.checkpointMinutes > 0) actions.push("CHECKPOINT");
   if (hasMasuk && !hasPulang) actions.push("PULANG");
 
-  async function openCamera(k) {
-    setErr(""); setOk(""); setShot(null); setActivity(""); setKind(k);
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "environment" }, audio: false,
-      });
-      streamRef.current = stream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        await videoRef.current.play();
+  // Buka kamera lewat efek supaya elemen <video> sudah ada saat stream dipasang.
+  // Dulu getUserMedia dipanggil sebelum render, jadi tombol harus dipencet 2-3x.
+  useEffect(() => {
+    let cancelled = false;
+    async function start() {
+      if (!kind || shot) return;
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: "environment" }, audio: false,
+        });
+        if (cancelled) { stream.getTracks().forEach((t) => t.stop()); return; }
+        streamRef.current = stream;
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          await videoRef.current.play().catch(() => {});
+        }
+      } catch {
+        if (!cancelled) {
+          setErr("Tidak bisa membuka kamera. Izinkan akses kamera di browser.");
+          setKind(null);
+        }
       }
-    } catch {
-      setErr("Tidak bisa membuka kamera. Izinkan akses kamera di browser.");
-      setKind(null);
     }
+    start();
+    return () => { cancelled = true; };
+  }, [kind, shot]);
+
+  // Matikan kamera saat komponen dilepas.
+  useEffect(() => () => stopCamera(), []);
+
+  function openCamera(k) {
+    setErr(""); setOk(""); setShot(null); setActivity(""); setKind(k);
   }
 
   function stopCamera() {
@@ -124,12 +141,18 @@ export default function AbsenPanel({ session, existing }) {
       {existing.length > 0 && (
         <div style={{ marginBottom: 12 }}>
           {existing.map((e) => (
-            <div className="meta" key={e.id} style={{ marginBottom: 4 }}>
-              <b>{LABEL[e.kind]}</b> · {e.checkedAt} ·{" "}
-              <span className={`badge ${badgeClass(e.status, e.insideRadius)}`}>{e.status}</span>{" "}
-              {e.verified ? <span className="badge ok">sah</span> : <span className="badge muted">belum disahkan</span>}
-              {e.activity && <div style={{ color: "var(--text)", fontSize: 13 }}>Kegiatan: {e.activity}</div>}
-              {e.note && <div className="note">{e.note}</div>}
+            <div className="list-item" key={e.id}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              {e.photo && <img className="thumb" src={e.photo} alt={`Foto ${LABEL[e.kind]}`} />}
+              <div className="grow">
+                <div className="meta">
+                  <b>{LABEL[e.kind]}</b> · {e.checkedAt} ·{" "}
+                  <span className={`badge ${badgeClass(e.status, e.insideRadius)}`}>{e.status}</span>{" "}
+                  {e.verified ? <span className="badge ok">sah</span> : <span className="badge muted">belum disahkan</span>}
+                </div>
+                {e.activity && <div style={{ color: "var(--text)", fontSize: 13 }}>Kegiatan: {e.activity}</div>}
+                {e.note && <div className="note">{e.note}</div>}
+              </div>
             </div>
           ))}
         </div>
@@ -183,7 +206,7 @@ export default function AbsenPanel({ session, existing }) {
                 <button className="btn-ok grow" onClick={send} disabled={busy}>
                   {busy ? "Mengirim..." : "Kirim absen"}
                 </button>
-                <button className="btn-ghost" style={{ width: "auto" }} onClick={() => openCamera(kind)} disabled={busy}>
+                <button className="btn-ghost" style={{ width: "auto" }} onClick={() => setShot(null)} disabled={busy}>
                   Ulang
                 </button>
                 <button className="btn-ghost" style={{ width: "auto" }} onClick={cancel} disabled={busy}>

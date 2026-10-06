@@ -73,8 +73,8 @@ export default function EnableReminders({ vapidPublic }) {
   }
   return (
     <div>
-      <button className="btn-ghost" style={{ width: "auto" }} onClick={enable} disabled={state === "busy"}>
-        {state === "busy" ? "Mengaktifkan..." : "Aktifkan pengingat di HP"}
+      <button className="btn-primary" onClick={enable} disabled={state === "busy"}>
+        {state === "busy" ? "Mengaktifkan..." : "🔔 Aktifkan pengingat absen di HP"}
       </button>
       {msg && <div className="note">{msg}</div>}
     </div>

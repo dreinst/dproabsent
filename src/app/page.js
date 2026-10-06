@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser, isAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -45,6 +46,11 @@ export default async function CrewHome() {
         <h2>Pengingat absen</h2>
         <p className="sub">Nyalakan supaya HP mengingatkanmu absen di setiap titik cek.</p>
         <EnableReminders vapidPublic={process.env.VAPID_PUBLIC || process.env.NEXT_PUBLIC_VAPID_PUBLIC || ""} />
+        <div style={{ marginTop: 12 }}>
+          <Link href="/riwayat" className="btn-ghost" style={{ textDecoration: "none", display: "inline-block", padding: "10px 16px", borderRadius: 999 }}>
+            Lihat riwayat absen saya
+          </Link>
+        </div>
       </div>
 
       {sessions.length === 0 && (
@@ -76,6 +82,7 @@ export default async function CrewHome() {
               distanceM: a.distanceM,
               insideRadius: a.insideRadius,
               activity: a.activity,
+              photo: a.photo,
               note: a.note,
               verified: !!a.verifiedAt,
             }))}
