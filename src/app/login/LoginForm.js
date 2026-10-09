@@ -51,9 +51,10 @@ export default function LoginForm() {
         type="password"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
+        placeholder="Password dari kantor"
         autoComplete="current-password"
       />
-      <div style={{ height: 14 }} />
+      <div style={{ height: 16 }} />
       <button className="btn-primary" disabled={busy}>
         {busy ? "Memproses..." : "Masuk"}
       </button>

@@ -1,8 +1,7 @@
-import { Inter, Plus_Jakarta_Sans } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
-const jakarta = Plus_Jakarta_Sans({ subsets: ["latin"], variable: "--font-jakarta", display: "swap" });
 
 export const metadata = {
   title: "DPro Absen",
@@ -16,13 +15,13 @@ export const viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
-  themeColor: "#2563eb",
+  themeColor: "#0b2144",
 };
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="id">
-      <body className={`${inter.variable} ${jakarta.variable}`}>
+    <html lang="id" className={inter.variable}>
+      <body>
         {children}
         <footer style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12, padding: "20px 16px 24px", fontSize: 11, color: "var(--muted)", fontFamily: "var(--font-inter), system-ui, sans-serif" }}>
           <span>

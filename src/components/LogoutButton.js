@@ -9,9 +9,5 @@ export default function LogoutButton() {
     router.replace("/login");
     router.refresh();
   }
-  return (
-    <button className="btn-ghost" style={{ width: "auto" }} onClick={out}>
-      Keluar
-    </button>
-  );
+  return <button className="btn-ghost btn-kecil" onClick={out}>Keluar</button>;
 }

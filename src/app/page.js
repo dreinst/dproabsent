@@ -2,17 +2,12 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser, isAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { fmtWaktu, fmtSingkat } from "@/lib/waktu";
 import LogoutButton from "@/components/LogoutButton";
 import AbsenPanel from "@/components/AbsenPanel";
 import EnableReminders from "@/components/EnableReminders";
 
 export const dynamic = "force-dynamic";
-
-const fmt = (d) =>
-  new Intl.DateTimeFormat("id-ID", {
-    weekday: "short", day: "numeric", month: "short",
-    hour: "2-digit", minute: "2-digit",
-  }).format(d);
 
 export default async function CrewHome() {
   const user = await getCurrentUser();
@@ -27,29 +22,26 @@ export default async function CrewHome() {
     },
     orderBy: { startAt: "asc" },
   });
+  const now = new Date();
 
   return (
     <div className="wrap">
       <div className="topbar">
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img className="brand-logo" src="/logo-dpro.svg" alt="D'Production" />
-          <div>
-            <h1>Absen saya</h1>
-            <div className="who">{user.name}</div>
-          </div>
-        </div>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img className="brand-logo" src="/logo-dpro.svg" alt="D'Production" />
         <LogoutButton />
+      </div>
+      <div className="judul">
+        <h1>Absen saya</h1>
+        <p>Halo, {user.name}</p>
       </div>
 
       <div className="card">
         <h2>Pengingat absen</h2>
-        <p className="sub">Nyalakan supaya HP mengingatkanmu absen di setiap titik cek.</p>
-        <EnableReminders vapidPublic={process.env.VAPID_PUBLIC || process.env.NEXT_PUBLIC_VAPID_PUBLIC || ""} />
-        <div style={{ marginTop: 12 }}>
-          <Link href="/riwayat" className="btn-ghost" style={{ textDecoration: "none", display: "inline-block", padding: "10px 16px", borderRadius: 999 }}>
-            Lihat riwayat absen saya
-          </Link>
+        <p className="sub">Nyalakan supaya HP mengingatkanmu di setiap titik cek.</p>
+        <div className="tumpuk">
+          <EnableReminders vapidPublic={process.env.VAPID_PUBLIC || process.env.NEXT_PUBLIC_VAPID_PUBLIC || ""} />
+          <Link href="/riwayat" className="btn-ghost">Lihat riwayat absen saya</Link>
         </div>
       </div>
 
@@ -60,35 +52,43 @@ export default async function CrewHome() {
         </div>
       )}
 
-      {sessions.map((s) => (
-        <div className="card" key={s.id}>
-          <h2>{s.event.name} <span className="badge muted">{s.jobdesc}</span></h2>
-          <p className="sub">
-            {fmt(s.startAt)} sampai {fmt(s.endAt)}
-            {s.checkpointMinutes > 0 && ` · titik cek tiap ${s.checkpointMinutes} menit`}
-          </p>
-          <AbsenPanel
-            session={{
-              id: s.id,
-              checkpointMinutes: s.checkpointMinutes,
-              eventName: s.event.name,
-              radiusM: s.event.radiusM,
-            }}
-            existing={s.absensi.map((a) => ({
-              id: a.id,
-              kind: a.kind,
-              status: a.status,
-              checkedAt: fmt(a.checkedAt),
-              distanceM: a.distanceM,
-              insideRadius: a.insideRadius,
-              activity: a.activity,
-              photo: a.photo,
-              note: a.note,
-              verified: !!a.verifiedAt,
-            }))}
-          />
-        </div>
-      ))}
+      {sessions.map((s) => {
+        const jalan = s.startAt <= now && now <= s.endAt;
+        return (
+          <div className="card" key={s.id}>
+            <div className={jalan ? "mata merah" : "mata"}>
+              {jalan ? "Sedang berjalan" : now < s.startAt ? "Berikutnya" : "Sudah lewat"}
+            </div>
+            <div className="row" style={{ flexWrap: "nowrap", alignItems: "flex-start" }}>
+              <h2 className="grow">{s.event.name}</h2>
+              <span className="badge navy">{s.jobdesc}</span>
+            </div>
+            <p className="sub">
+              {fmtWaktu(s.startAt)} sampai {fmtSingkat(s.endAt)}
+              {s.checkpointMinutes > 0 && <><br />Titik cek tiap {s.checkpointMinutes} menit</>}
+            </p>
+            <AbsenPanel
+              session={{
+                id: s.id,
+                checkpointMinutes: s.checkpointMinutes,
+                eventName: s.event.name,
+                jobdesc: s.jobdesc,
+              }}
+              existing={s.absensi.map((a) => ({
+                id: a.id,
+                kind: a.kind,
+                status: a.status,
+                checkedAt: fmtSingkat(a.checkedAt),
+                distanceM: a.distanceM,
+                insideRadius: a.insideRadius,
+                activity: a.activity,
+                photo: a.photo,
+                note: a.note,
+              }))}
+            />
+          </div>
+        );
+      })}
     </div>
   );
 }

@@ -1,82 +1,90 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser, isAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import LogoutButton from "@/components/LogoutButton";
+import { fmtSingkat } from "@/lib/waktu";
+import { KIND, STATUS, nadaStatus } from "@/lib/label";
+import AdminShell, { Cari, Saring } from "@/components/AdminShell";
 import AdminActions from "@/components/AdminActions";
 
 export const dynamic = "force-dynamic";
 
-const fmt = (d) =>
-  new Intl.DateTimeFormat("id-ID", {
-    day: "numeric", month: "short", hour: "2-digit", minute: "2-digit",
-  }).format(d);
+const SARING = {
+  belum: { verifiedAt: null },
+  luar: { insideRadius: false },
+  telat: { status: "TERLAMBAT" },
+};
+const KOL = { "--kol": "56px 1.1fr 1.3fr 110px 1.3fr 170px" };
 
-const KIND = { MASUK: "Masuk", CHECKPOINT: "Titik cek", PULANG: "Pulang" };
-
-function badgeClass(status, insideRadius) {
-  if (!insideRadius) return "bad";
-  if (status === "TERLAMBAT") return "warn";
-  if (status === "TIDAK_HADIR") return "bad";
-  return "ok";
-}
-
-export default async function AdminPage() {
+export default async function AdminPage({ searchParams }) {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
   if (!isAdmin(user)) redirect("/");
 
-  const rows = await prisma.absensi.findMany({
-    include: { user: true, session: { include: { event: true } } },
-    orderBy: { checkedAt: "desc" },
-    take: 100,
-  });
+  const sp = await searchParams;
+  const f = SARING[sp.f] ? sp.f : "";
+  const q = String(sp.q || "").trim();
+  const cari = q
+    ? { OR: [
+        { user: { name: { contains: q, mode: "insensitive" } } },
+        { session: { event: { name: { contains: q, mode: "insensitive" } } } },
+      ] }
+    : {};
 
-  const belum = rows.filter((r) => !r.verifiedAt).length;
+  const [rows, semua, belum, luar, telat] = await Promise.all([
+    prisma.absensi.findMany({
+      where: { ...SARING[f], ...cari },
+      include: { user: true, session: { include: { event: true } } },
+      orderBy: { checkedAt: "desc" },
+      take: 100,
+    }),
+    prisma.absensi.count(),
+    prisma.absensi.count({ where: SARING.belum }),
+    prisma.absensi.count({ where: SARING.luar }),
+    prisma.absensi.count({ where: SARING.telat }),
+  ]);
 
   return (
-    <div className="wrap">
-      <div className="topbar">
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img className="brand-logo" src="/logo-dpro.svg" alt="D'Production" />
-          <div>
-            <h1>Verifikasi absen</h1>
-            <div className="who">{user.name} · {user.role}</div>
-          </div>
+    <AdminShell
+      user={user} tab="/admin" title="Verifikasi absen"
+      sub="Sahkan absen yang benar, tolak yang tidak sesuai."
+      aksi={<Cari q={q} f={f} placeholder="Cari nama crew atau acara" />}
+    >
+      <Saring base="/admin" f={f} q={q} pilihan={[
+        ["", `Semua ${semua}`], ["belum", `Belum disahkan ${belum}`],
+        ["luar", `Di luar radius ${luar}`], ["telat", `Terlambat ${telat}`],
+      ]} />
+
+      <div className="tabel">
+        <div className="baris kop" style={KOL}>
+          <div>Foto</div><div>Crew</div><div>Acara dan sesi</div><div>Waktu</div><div>Status</div><div>Aksi</div>
         </div>
-        <LogoutButton />
-      </div>
-
-      <div className="card">
-        <h2>Ringkasan</h2>
-        <p className="sub">
-          {rows.length} absen terbaru · <b>{belum}</b> belum disahkan.
-        </p>
-      </div>
-
-      {rows.map((r) => (
-        <div className="card" key={r.id}>
-          <div className="list-item">
-            <img className="thumb" src={r.photo} alt={`Foto absen ${r.user.name}`} />
-            <div className="grow">
-              <div><b>{r.user.name}</b> <span className="badge muted">{KIND[r.kind]}</span></div>
-              <div className="meta">{r.session.event.name} · {r.session.jobdesc}</div>
-              <div className="meta">
-                {fmt(r.checkedAt)} ·{" "}
-                <span className={`badge ${badgeClass(r.status, r.insideRadius)}`}>{r.status}</span>{" "}
-                <span className={`badge ${r.insideRadius ? "muted" : "bad"}`}>{r.distanceM} m</span>{" "}
-                {r.accuracyM != null && <span className="badge muted">akurasi {r.accuracyM} m</span>}{" "}
-                {r.verifiedAt
-                  ? <span className="badge ok">sah</span>
-                  : <span className="badge warn">belum</span>}
+        {rows.length === 0 && <div className="kosong">Tidak ada absen yang cocok.</div>}
+        {rows.map((r) => (
+          <div className="baris" style={KOL} key={r.id}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <div><img className="thumb" src={r.photo} alt={`Foto absen ${r.user.name}`} /></div>
+            <div className="lebar">
+              <div className="tebal">{r.user.name}</div>
+              {r.activity && <div className="meta">{r.activity}</div>}
+            </div>
+            <div className="lebar">
+              <div className="tebal">{r.session.event.name}</div>
+              <div className="meta">{r.session.jobdesc} · {KIND[r.kind]}</div>
+            </div>
+            <div>{fmtSingkat(r.checkedAt)}</div>
+            <div className="lebar">
+              <div className="lencana">
+                <span className={`badge ${nadaStatus(r.status)}`}>{STATUS[r.status]}</span>
+                <span className={`badge ${r.insideRadius ? "muted" : "bad"}`}>{r.distanceM} m</span>
+                {r.verifiedAt ? <span className="badge ok">Sah</span> : <span className="badge warn">Belum</span>}
               </div>
-              {r.activity && <div className="meta"><b>Kegiatan:</b> {r.activity}</div>}
               {r.note && <div className="note">{r.note}</div>}
             </div>
+            <div><AdminActions id={r.id} verified={!!r.verifiedAt} /></div>
           </div>
-          <AdminActions id={r.id} verified={!!r.verifiedAt} />
-        </div>
-      ))}
-    </div>
+        ))}
+      </div>
+      <div className="meta">Menampilkan {rows.length} absen terbaru.</div>
+    </AdminShell>
   );
 }

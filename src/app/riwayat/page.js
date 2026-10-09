@@ -2,23 +2,11 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser, isAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { fmtTanggal } from "@/lib/waktu";
+import { KIND, STATUS, nadaStatus } from "@/lib/label";
 import LogoutButton from "@/components/LogoutButton";
 
 export const dynamic = "force-dynamic";
-
-const fmt = (d) =>
-  new Intl.DateTimeFormat("id-ID", {
-    day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit",
-  }).format(d);
-
-const KIND = { MASUK: "Masuk", CHECKPOINT: "Titik cek", PULANG: "Pulang" };
-
-function badgeClass(status, insideRadius) {
-  if (!insideRadius) return "bad";
-  if (status === "TERLAMBAT") return "warn";
-  if (status === "TIDAK_HADIR") return "bad";
-  return "ok";
-}
 
 export default async function RiwayatPage() {
   const user = await getCurrentUser();
@@ -35,21 +23,16 @@ export default async function RiwayatPage() {
   return (
     <div className="wrap">
       <div className="topbar">
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img className="brand-logo" src="/logo-dpro.svg" alt="D'Production" />
-          <div>
-            <h1>Riwayat absen</h1>
-            <div className="who">{user.name}</div>
-          </div>
-        </div>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img className="brand-logo" src="/logo-dpro.svg" alt="D'Production" />
         <LogoutButton />
       </div>
-
-      <div className="row" style={{ marginBottom: 14 }}>
-        <Link href="/" className="btn-ghost" style={{ textDecoration: "none", padding: "10px 16px", borderRadius: 999 }}>
-          Kembali ke absen
-        </Link>
+      <div className="judul">
+        <h1>Riwayat absen</h1>
+        <p>{user.name}</p>
+      </div>
+      <div className="row" style={{ marginBottom: 12 }}>
+        <Link href="/" className="btn-ghost btn-kecil">Kembali ke absen</Link>
       </div>
 
       {rows.length === 0 && (
@@ -57,21 +40,22 @@ export default async function RiwayatPage() {
       )}
 
       {rows.map((r) => (
-        <div className="card" key={r.id}>
-          <div className="list-item">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img className="thumb" src={r.photo} alt={`Foto ${KIND[r.kind]}`} />
-            <div className="grow">
-              <div><b>{r.session.event.name}</b> <span className="badge muted">{KIND[r.kind]}</span></div>
-              <div className="meta">{r.session.jobdesc} · {fmt(r.checkedAt)}</div>
-              <div className="meta">
-                <span className={`badge ${badgeClass(r.status, r.insideRadius)}`}>{r.status}</span>{" "}
-                <span className={`badge ${r.insideRadius ? "muted" : "bad"}`}>{r.distanceM} m</span>{" "}
-                {r.verifiedAt ? <span className="badge ok">sah</span> : <span className="badge warn">belum</span>}
-              </div>
-              {r.activity && <div className="meta"><b>Kegiatan:</b> {r.activity}</div>}
-              {r.note && <div className="note">{r.note}</div>}
+        <div className="riwayat" key={r.id}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img className="thumb besar" src={r.photo} alt={`Foto ${KIND[r.kind]}`} />
+          <div className="grow">
+            <div className="tebal" style={{ fontSize: 15 }}>{r.session.event.name}</div>
+            <div className="meta" style={{ margin: "2px 0 6px" }}>
+              {r.session.jobdesc} · {KIND[r.kind]} · {fmtTanggal(r.checkedAt)}
             </div>
+            <div className="lencana">
+              <span className={`badge ${nadaStatus(r.status)}`}>{STATUS[r.status]}</span>
+              <span className={`badge ${r.insideRadius ? "muted" : "bad"}`}>
+                {r.distanceM} m{!r.insideRadius && ", luar radius"}
+              </span>
+              {r.verifiedAt ? <span className="badge ok">Sah</span> : <span className="badge warn">Belum disahkan</span>}
+            </div>
+            {r.activity && <div className="meta" style={{ marginTop: 6 }}>{r.activity}</div>}
           </div>
         </div>
       ))}

@@ -21,16 +21,13 @@ export default function AdminActions({ id, verified }) {
     }
   }
 
+  if (verified) {
+    return <button className="btn-ghost btn-kecil" onClick={() => act("batal")} disabled={busy}>Batalkan sah</button>;
+  }
   return (
-    <div className="row" style={{ marginTop: 10 }}>
-      {!verified ? (
-        <button className="btn-ok grow" onClick={() => act("sahkan")} disabled={busy}>Sahkan</button>
-      ) : (
-        <button className="btn-ghost grow" onClick={() => act("batal")} disabled={busy}>Batalkan sah</button>
-      )}
-      <button className="btn-bad" style={{ width: "auto" }} onClick={() => act("tolak")} disabled={busy}>
-        Tolak
-      </button>
+    <div className="row" style={{ gap: 6, flexWrap: "nowrap" }}>
+      <button className="btn-primary btn-kecil" onClick={() => act("sahkan")} disabled={busy}>Sahkan</button>
+      <button className="btn-bad btn-kecil" onClick={() => act("tolak")} disabled={busy}>Tolak</button>
     </div>
   );
 }

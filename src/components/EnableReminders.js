@@ -25,7 +25,16 @@ export default function EnableReminders({ vapidPublic }) {
     }
     if (Notification.permission === "granted") {
       navigator.serviceWorker.getRegistration().then((reg) => {
-        reg?.pushManager.getSubscription().then((sub) => { if (sub) setState("on"); });
+        reg?.pushManager.getSubscription().then((sub) => {
+          if (!sub) return;
+          setState("on");
+          // Simpan ulang supaya langganan perangkat ini selalu tercatat untuk akun yang sedang masuk.
+          fetch("/api/push/subscribe", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify(sub),
+          }).catch(() => {});
+        });
       });
     }
   }, []);
@@ -57,6 +66,19 @@ export default function EnableReminders({ vapidPublic }) {
     }
   }
 
+  async function uji() {
+    setMsg("Mengirim...");
+    try {
+      const res = await fetch("/api/push/test", { method: "POST" });
+      const data = await res.json();
+      setMsg(data.sent > 0
+        ? "Terkirim. Notifikasi muncul dalam beberapa detik."
+        : "Belum terkirim. Matikan lalu aktifkan lagi izin notifikasi, kemudian coba ulang.");
+    } catch {
+      setMsg("Jaringan bermasalah, coba lagi.");
+    }
+  }
+
   if (state === "unsupported") {
     return <div className="meta">Browser ini belum mendukung notifikasi push.</div>;
   }
@@ -69,12 +91,18 @@ export default function EnableReminders({ vapidPublic }) {
     );
   }
   if (state === "on") {
-    return <div className="ok-msg">Pengingat absen aktif di perangkat ini.</div>;
+    return (
+      <div>
+        <div className="ok-msg">Pengingat absen aktif di perangkat ini.</div>
+        <button className="btn-ghost penuh" style={{ marginTop: 10 }} onClick={uji}>Kirim notifikasi uji</button>
+        {msg && <div className="meta" style={{ marginTop: 6 }}>{msg}</div>}
+      </div>
+    );
   }
   return (
     <div>
       <button className="btn-primary" onClick={enable} disabled={state === "busy"}>
-        {state === "busy" ? "Mengaktifkan..." : "🔔 Aktifkan pengingat absen di HP"}
+        {state === "busy" ? "Mengaktifkan..." : "Aktifkan pengingat di HP"}
       </button>
       {msg && <div className="note">{msg}</div>}
     </div>

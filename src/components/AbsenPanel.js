@@ -3,14 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
-const LABEL = { MASUK: "Absen masuk", CHECKPOINT: "Titik cek", PULANG: "Absen pulang" };
+import { KIND, STATUS, nadaStatus } from "@/lib/label";
 
-function badgeClass(status, insideRadius) {
-  if (!insideRadius) return "bad";
-  if (status === "TERLAMBAT") return "warn";
-  if (status === "TIDAK_HADIR") return "bad";
-  return "ok";
-}
+const LABEL = { MASUK: "Absen masuk", CHECKPOINT: "Absen titik cek", PULANG: "Absen pulang" };
 
 export default function AbsenPanel({ session, existing }) {
   const router = useRouter();
@@ -138,39 +133,31 @@ export default function AbsenPanel({ session, existing }) {
 
   return (
     <div>
-      {existing.length > 0 && (
-        <div style={{ marginBottom: 12 }}>
-          {existing.map((e) => (
-            <div className="list-item" key={e.id}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              {e.photo && <img className="thumb" src={e.photo} alt={`Foto ${LABEL[e.kind]}`} />}
-              <div className="grow">
-                <div className="meta">
-                  <b>{LABEL[e.kind]}</b> · {e.checkedAt} ·{" "}
-                  <span className={`badge ${badgeClass(e.status, e.insideRadius)}`}>{e.status}</span>{" "}
-                  {e.verified ? <span className="badge ok">sah</span> : <span className="badge muted">belum disahkan</span>}
-                </div>
-                {e.activity && <div style={{ color: "var(--text)", fontSize: 13 }}>Kegiatan: {e.activity}</div>}
-                {e.note && <div className="note">{e.note}</div>}
-              </div>
+      {existing.map((e) => (
+        <div key={e.id}>
+          <div className="absen-baris">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            {e.photo && <img className="thumb kecil" src={e.photo} alt={`Foto ${KIND[e.kind]}`} />}
+            <div className="grow">
+              <div className="tebal" style={{ fontSize: 14 }}>{KIND[e.kind]}</div>
+              <div className="meta" style={{ fontSize: 12 }}>{e.checkedAt} · {e.distanceM} m dari titik</div>
             </div>
-          ))}
+            <span className={`badge ${e.insideRadius ? nadaStatus(e.status) : "bad"}`}>
+              {e.insideRadius ? STATUS[e.status] : "Luar radius"}
+            </span>
+          </div>
+          {e.note && <div className="note" style={{ margin: "-2px 0 8px" }}>{e.note}</div>}
         </div>
-      )}
+      ))}
 
-      {err && <div className="err" style={{ marginBottom: 10 }}>{err}</div>}
-      {ok && <div className="ok-msg" style={{ marginBottom: 10 }}>{ok}</div>}
+      {err && <div className="err" style={{ margin: "10px 0" }}>{err}</div>}
+      {ok && <div className="ok-msg" style={{ margin: "10px 0" }}>{ok}</div>}
 
       {!kind && (
-        <div className="row">
-          {actions.length === 0 && !hasPulang && <span className="meta">Memuat aksi...</span>}
-          {hasPulang && actions.length === 0 && <span className="meta">Sesi selesai. Absen lengkap.</span>}
+        <div className="tumpuk" style={{ marginTop: existing.length ? 12 : 0 }}>
+          {hasPulang && <span className="meta">Sesi selesai. Absen lengkap.</span>}
           {actions.map((a) => (
-            <button
-              key={a}
-              className={a === "PULANG" ? "btn-ghost grow" : "btn-primary grow"}
-              onClick={() => openCamera(a)}
-            >
+            <button key={a} className={a === "PULANG" ? "btn-ghost" : "btn-primary"} onClick={() => openCamera(a)}>
               {LABEL[a]}
             </button>
           ))}
@@ -178,41 +165,40 @@ export default function AbsenPanel({ session, existing }) {
       )}
 
       {kind && (
-        <div>
-          <p className="sub">{LABEL[kind]} untuk {session.eventName}. Ambil foto langsung, jangan dari galeri.</p>
+        <div className="tumpuk" style={{ marginTop: 12 }}>
+          <div className="kamera">
+            {!shot ? (
+              // eslint-disable-next-line jsx-a11y/media-has-caption
+              <video ref={videoRef} playsInline muted />
+            ) : (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={shot} alt="Foto absen" />
+            )}
+            <span className="kaca atas">{KIND[kind]} · {session.jobdesc}</span>
+            <span className="kaca bawah">{shot ? "Lokasi dibaca saat dikirim" : "Ambil foto langsung, bukan dari galeri"}</span>
+          </div>
           {!shot ? (
             <>
-              {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
-              <video ref={videoRef} playsInline muted />
-              <div style={{ height: 10 }} />
-              <div className="row">
-                <button className="btn-primary grow" onClick={capture}>Jepret</button>
-                <button className="btn-ghost" style={{ width: "auto" }} onClick={cancel}>Batal</button>
-              </div>
+              <button className="btn-primary" onClick={capture}>Jepret</button>
+              <button className="btn-ghost" onClick={cancel}>Batal</button>
             </>
           ) : (
             <>
-              <img className="shot" src={shot} alt="Foto absen" />
-              <label>Sedang mengerjakan apa?</label>
-              <input
-                type="text"
-                placeholder="Contoh: pasang rigging panggung utama"
-                value={activity}
-                onChange={(e) => setActivity(e.target.value)}
-                maxLength={300}
-              />
-              <div style={{ height: 10 }} />
-              <div className="row">
-                <button className="btn-ok grow" onClick={send} disabled={busy}>
-                  {busy ? "Mengirim..." : "Kirim absen"}
-                </button>
-                <button className="btn-ghost" style={{ width: "auto" }} onClick={() => setShot(null)} disabled={busy}>
-                  Ulang
-                </button>
-                <button className="btn-ghost" style={{ width: "auto" }} onClick={cancel} disabled={busy}>
-                  Batal
-                </button>
+              <div>
+                <label style={{ marginTop: 4 }}>Sedang mengerjakan apa?</label>
+                <input
+                  type="text"
+                  placeholder="Contoh: pasang rigging panggung utama"
+                  value={activity}
+                  onChange={(e) => setActivity(e.target.value)}
+                  maxLength={300}
+                />
               </div>
+              <button className="btn-primary" onClick={send} disabled={busy}>
+                {busy ? "Mengirim..." : "Kirim absen"}
+              </button>
+              <button className="btn-ghost" onClick={() => setShot(null)} disabled={busy}>Ulangi foto</button>
+              <button className="btn-ghost" onClick={cancel} disabled={busy}>Batal</button>
             </>
           )}
         </div>
