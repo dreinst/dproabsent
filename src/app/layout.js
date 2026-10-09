@@ -25,7 +25,12 @@ export default function RootLayout({ children }) {
       <body className={`${inter.variable} ${jakarta.variable}`}>
         {children}
         <footer style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12, padding: "20px 16px 24px", fontSize: 11, color: "var(--muted)", fontFamily: "var(--font-inter), system-ui, sans-serif" }}>
-          <span>Made by dreinst</span>
+          <span>
+            Made by{" "}
+            <a href="https://www.instagram.com/dreiinst/" target="_blank" rel="noopener noreferrer" style={{ color: "inherit", textDecoration: "none" }}>
+              dreinst
+            </a>
+          </span>
           <span aria-hidden="true" style={{ width: 1, height: 14, background: "var(--line)" }} />
           <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
             Organized by
