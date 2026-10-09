@@ -30,7 +30,7 @@ export default function RootLayout({ children }) {
           <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
             Organized by
             {/* eslint-disable-next-line @next/next/no-img-element -- SVG statis, tanpa optimasi */}
-            <img src="/logo-dpro-ringkas.svg" alt="D'PRO" style={{ height: 16, width: "auto", opacity: 0.7 }} />
+            <img src="/logo-dpro-ringkas.svg?v=2" alt="D'PRO" style={{ height: 16, width: "auto", opacity: 0.7 }} />
           </span>
         </footer>
       </body>
