@@ -24,7 +24,7 @@ export default function RootLayout({ children }) {
     <html lang="id">
       <body className={`${inter.variable} ${jakarta.variable}`}>
         {children}
-        <footer style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12, padding: "20px 16px 24px", fontSize: 11, color: "var(--muted)" }}>
+        <footer style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12, padding: "20px 16px 24px", fontSize: 11, color: "var(--muted)", fontFamily: "var(--font-inter), system-ui, sans-serif" }}>
           <span>Made by dreinst</span>
           <span aria-hidden="true" style={{ width: 1, height: 14, background: "var(--line)" }} />
           <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
