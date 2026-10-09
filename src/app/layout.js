@@ -22,7 +22,18 @@ export const viewport = {
 export default function RootLayout({ children }) {
   return (
     <html lang="id">
-      <body className={`${inter.variable} ${jakarta.variable}`}>{children}</body>
+      <body className={`${inter.variable} ${jakarta.variable}`}>
+        {children}
+        <footer style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12, padding: "20px 16px 24px", fontSize: 11, color: "var(--muted)" }}>
+          <span>Made by dreinst</span>
+          <span aria-hidden="true" style={{ width: 1, height: 14, background: "var(--line)" }} />
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+            Organized by
+            {/* eslint-disable-next-line @next/next/no-img-element -- SVG statis, tanpa optimasi */}
+            <img src="/logo-dpro-ringkas.svg" alt="D'PRO" style={{ height: 16, width: "auto", opacity: 0.7 }} />
+          </span>
+        </footer>
+      </body>
     </html>
   );
 }
