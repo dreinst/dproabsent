@@ -1,4 +1,4 @@
-# DPro Absen: build Next.js untuk Coolify di VPS (Vercel mengabaikan berkas ini).
+# DPro Absen: build Next.js untuk Coolify di VPS.
 FROM node:22-slim
 WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-certificates && rm -rf /var/lib/apt/lists/*

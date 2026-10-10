@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-// Diagnosa: apakah env ada dan DB bisa dijangkau dari runtime Vercel.
+// Diagnosa: apakah env ada dan DB bisa dijangkau dari server.
 export async function GET() {
   const out = {
     hasDbUrl: !!process.env.DATABASE_URL,
