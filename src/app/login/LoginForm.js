@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 
 export default function LoginForm() {
   const router = useRouter();
-  const [phone, setPhone] = useState("");
+  const [nama, setNama] = useState("");
   const [password, setPassword] = useState("");
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
@@ -18,7 +18,7 @@ export default function LoginForm() {
       const res = await fetch("/api/login", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ phone, password }),
+        body: JSON.stringify({ nama, password }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -37,14 +37,14 @@ export default function LoginForm() {
   return (
     <form onSubmit={submit}>
       {err && <div className="err" style={{ marginBottom: 10 }}>{err}</div>}
-      <label>Nomor HP</label>
+      <label>Nama</label>
       <input
-        type="tel"
-        inputMode="numeric"
-        placeholder="08xxxxxxxxxx"
-        value={phone}
-        onChange={(e) => setPhone(e.target.value)}
+        type="text"
+        placeholder="Nama depan kamu"
+        value={nama}
+        onChange={(e) => setNama(e.target.value)}
         autoComplete="username"
+        autoCapitalize="none"
       />
       <label>Password</label>
       <input
