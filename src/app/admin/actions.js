@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { getCurrentUser, isAdmin, normalizePhone } from "@/lib/auth";
 import { hashPassword } from "@/lib/password";
 import { dariInput } from "@/lib/waktu";
+import { JEDA_MENIT } from "@/lib/aturan";
 
 async function wajibAdmin() {
   const user = await getCurrentUser();
@@ -58,13 +59,14 @@ export async function simpanSesi(f) {
   const jobdesc = teks(f, "jobdesc");
   const startAt = dariInput(f.get("startAt"));
   const endAt = dariInput(f.get("endAt"));
-  const checkpointMinutes = bulat(f, "checkpointMinutes") || 0;
   const graceMinutes = bulat(f, "graceMinutes") || 0;
 
   if (!jobdesc) kembali(path, "err", "Nama tugas sesi wajib diisi.");
   if (!startAt || !endAt) kembali(path, "err", "Waktu mulai dan selesai sesi wajib diisi.");
   if (endAt <= startAt) kembali(path, "err", "Waktu selesai sesi harus setelah waktu mulai.");
-  if (checkpointMinutes < 0 || graceMinutes < 0) kembali(path, "err", "Menit tidak boleh negatif.");
+  if (graceMinutes < 0) kembali(path, "err", "Batas telat tidak boleh negatif.");
+
+  const checkpointMinutes = JEDA_MENIT; // aturan tetap, lihat lib/aturan.js
 
   const data = { jobdesc, startAt, endAt, checkpointMinutes, graceMinutes };
   if (id) await prisma.session.update({ where: { id, eventId }, data });

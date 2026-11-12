@@ -185,3 +185,52 @@ summary::-webkit-details-marker { display: none; }
   .baris > .lebar { flex: 1 1 60%; }
 }
 @media (max-width: 480px) { .dua { grid-template-columns: 1fr; gap: 0; } }
+
+/* Layar crew ala BeReal: satu tombol besar, kamera layar penuh. */
+.hitung { text-align: center; background: var(--bg); border-radius: 24px; padding: 18px 16px; margin-bottom: 12px; }
+.hitung span { display: block; font-size: 13px; color: var(--muted); }
+.hitung b { display: block; font-size: 40px; font-weight: 700; letter-spacing: 1px; font-variant-numeric: tabular-nums; margin-top: 2px; }
+.hitung.saatnya { background: #fde8e8; }
+.hitung.saatnya span, .hitung.saatnya b { color: var(--red); }
+.hitung.telat b { font-size: 24px; color: var(--red); }
+
+.tombol-besar {
+  width: 100%; min-height: 64px; border: 0; border-radius: 999px; background: var(--navy); color: #fff;
+  font-size: 18px; font-weight: 600; cursor: pointer;
+}
+.tombol-besar:disabled { background: #c9ccd3; cursor: not-allowed; }
+.tombol-besar.denyut { animation: denyut 1.4s ease-in-out infinite; }
+@keyframes denyut {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(11, 33, 68, 0.45); }
+  50% { box-shadow: 0 0 0 14px rgba(11, 33, 68, 0); }
+}
+
+.riwayat-sesi { margin-top: 14px; }
+.riwayat-sesi summary { font-size: 13px; color: var(--muted); cursor: pointer; padding: 6px 0; }
+
+.layar-kamera { position: fixed; inset: 0; z-index: 50; background: #000; display: flex; flex-direction: column; }
+.kamera-media { position: relative; flex: 1; min-height: 0; background: #000; }
+.kamera-media video, .kamera-media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.kamera-atas {
+  position: absolute; top: 0; left: 0; right: 0; display: flex; align-items: center; justify-content: space-between;
+  gap: 8px; padding: calc(env(safe-area-inset-top, 0px) + 12px) 12px 12px;
+}
+.kaca, .kaca-tombol {
+  background: rgba(0, 0, 0, 0.45); color: #fff; border: 0; border-radius: 999px; padding: 9px 14px;
+  font-size: 13px; font-weight: 500; backdrop-filter: blur(6px);
+}
+.kaca-tombol { cursor: pointer; min-width: 64px; }
+.kamera-bawah {
+  background: #000; color: #fff; padding: 18px 20px calc(env(safe-area-inset-bottom, 0px) + 22px);
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+}
+.kamera-bawah p { margin: 0; font-size: 12px; color: #a1a1a6; text-align: center; }
+.kamera-bawah.form { align-items: stretch; }
+.kamera-bawah.form input { background: #1c1c1e; color: #fff; border-color: transparent; }
+.kamera-bawah.form .btn-ghost { background: transparent; color: #fff; border-color: #3a3a3c; }
+.shutter {
+  width: 76px; height: 76px; border-radius: 50%; border: 4px solid #fff; background: transparent;
+  padding: 0; cursor: pointer; position: relative;
+}
+.shutter::after { content: ""; position: absolute; inset: 5px; border-radius: 50%; background: #fff; }
+.shutter:active::after { inset: 8px; }

@@ -39,14 +39,14 @@ async function main() {
               jobdesc: "Loading",
               startAt: new Date(now - 5 * 60000), // baru mulai, absen sekarang masih HADIR
               endAt: new Date(now + 5 * 3600000),
-              checkpointMinutes: 90,
+              checkpointMinutes: 60,
               graceMinutes: 15,
             },
             {
               jobdesc: "Event",
               startAt: new Date(now + 60 * 60000),
               endAt: new Date(now + 6 * 3600000),
-              checkpointMinutes: 0,
+              checkpointMinutes: 60,
               graceMinutes: 15,
             },
           ],

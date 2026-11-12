@@ -153,7 +153,7 @@ async function main() {
         jobdesc: jobdesc[jobDescID] || "Tugas",
         startAt: start,
         endAt: end,
-        checkpointMinutes: 0,
+        checkpointMinutes: 60,
         graceMinutes: 15,
       },
     });

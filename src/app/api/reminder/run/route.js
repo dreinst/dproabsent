@@ -1,10 +1,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendToUser } from "@/lib/push";
+import { JEDA_MENIT, BATAS_MENIT } from "@/lib/aturan";
 
-// Dipanggil cron (VPS) tiap 15 menit. Dilindungi REMINDER_SECRET.
-// Mencari crew yang sudah MASUK, belum PULANG, dan titik cek terakhirnya
-// lewat dari interval sesi, lalu mengirim pengingat ke HP-nya.
+// Dipanggil cron (VPS) tiap 1 menit. Dilindungi REMINDER_SECRET.
+// Titik cek selalu 60 menit sejak absen terakhir. Crew yang sudah MASUK dan belum PULANG
+// dapat pengingat tepat saat waktunya tiba (menit ke-0) dan sekali lagi di menit ke-3,
+// selagi masih dalam batas 5 menit. Tidak ada kolom penanda: menit ke-0 dan ke-3 hanya
+// terlewati sekali per titik cek selama cron jalan tiap menit.
 export const dynamic = "force-dynamic";
 
 async function run(req) {
@@ -19,7 +22,6 @@ async function run(req) {
   const now = new Date();
   const sessions = await prisma.session.findMany({
     where: {
-      checkpointMinutes: { gt: 0 },
       startAt: { lte: now },
       endAt: { gte: now },
       event: { active: true },
@@ -43,10 +45,12 @@ async function run(req) {
       const kinds = list.map((x) => x.kind);
       if (!kinds.includes("MASUK") || kinds.includes("PULANG")) continue;
       const last = list[list.length - 1].checkedAt;
-      if (now - last < s.checkpointMinutes * 60000) continue;
+      const menitLewat = Math.floor((now - last) / 60000) - JEDA_MENIT;
+      if (menitLewat !== 0 && menitLewat !== BATAS_MENIT - 2) continue;
+      const sisa = BATAS_MENIT - menitLewat;
       const n = await sendToUser(userId, {
-        title: "Waktunya absen",
-        body: `Titik cek untuk ${s.event.name} (${s.jobdesc}). Buka aplikasi dan absen.`,
+        title: menitLewat === 0 ? "Waktunya absen" : "Absen sebentar lagi telat",
+        body: `${s.event.name} (${s.jobdesc}). Buka dan absen, sisa ${sisa} menit.`,
         url: "/",
       });
       if (n > 0) { reminded++; detail.push({ userId, sessionId: s.id }); }

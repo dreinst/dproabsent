@@ -28,8 +28,8 @@ function FormSesi({ eventId, sesi, mulai }) {
       </div>
       <div className="dua">
         <div>
-          <label>Titik cek tiap (menit, 0 = tanpa)</label>
-          <input type="number" name="checkpointMinutes" min="0" defaultValue={sesi?.checkpointMinutes ?? 60} />
+          <label>Titik cek</label>
+          <div className="meta" style={{ padding: "12px 0" }}>Otomatis tiap 60 menit, tidak bisa diubah.</div>
         </div>
         <div>
           <label>Batas telat (menit)</label>
@@ -84,7 +84,7 @@ export default async function AcaraDetailPage({ params, searchParams }) {
                   <b>{s.jobdesc}</b>
                   <span className="meta">{fmtWaktu(s.startAt)} sampai {fmtWaktu(s.endAt)}</span>
                 </div>
-                {s.checkpointMinutes > 0 && <span className="badge navy">Titik cek {s.checkpointMinutes} menit</span>}
+                <span className="badge navy">Titik cek 60 menit</span>
                 <span className="badge muted" style={{ background: "#fff" }}>{s._count.absensi} absen</span>
               </summary>
               <FormSesi eventId={acara.id} sesi={s} />

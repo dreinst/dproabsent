@@ -9,6 +9,12 @@ import EnableReminders from "@/components/EnableReminders";
 
 export const dynamic = "force-dynamic";
 
+// Waktu absen terakhir yang memulai hitungan 60 menit berikutnya (masuk atau titik cek).
+function lastAt(absensi) {
+  const aktif = absensi.filter((a) => a.kind !== "PULANG");
+  return aktif.length ? aktif[aktif.length - 1].checkedAt.getTime() : null;
+}
+
 export default async function CrewHome() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
@@ -36,15 +42,6 @@ export default async function CrewHome() {
         <p>Halo, {user.name}</p>
       </div>
 
-      <div className="card">
-        <h2>Pengingat absen</h2>
-        <p className="sub">Nyalakan supaya HP mengingatkanmu di setiap titik cek.</p>
-        <div className="tumpuk">
-          <EnableReminders vapidPublic={process.env.VAPID_PUBLIC || process.env.NEXT_PUBLIC_VAPID_PUBLIC || ""} />
-          <Link href="/riwayat" className="btn-ghost">Lihat riwayat absen saya</Link>
-        </div>
-      </div>
-
       {sessions.length === 0 && (
         <div className="card">
           <h2>Belum ada sesi aktif</h2>
@@ -65,15 +62,16 @@ export default async function CrewHome() {
             </div>
             <p className="sub">
               {fmtWaktu(s.startAt)} sampai {fmtSingkat(s.endAt)}
-              {s.checkpointMinutes > 0 && <><br />Titik cek tiap {s.checkpointMinutes} menit</>}
+              <br />Titik cek tiap 60 menit
             </p>
             <AbsenPanel
               session={{
                 id: s.id,
-                checkpointMinutes: s.checkpointMinutes,
+                endAt: s.endAt.getTime(),
                 eventName: s.event.name,
                 jobdesc: s.jobdesc,
               }}
+              lastAt={lastAt(s.absensi)}
               existing={s.absensi.map((a) => ({
                 id: a.id,
                 kind: a.kind,
@@ -89,6 +87,15 @@ export default async function CrewHome() {
           </div>
         );
       })}
+
+      <div className="card">
+        <h2>Pengingat absen</h2>
+        <p className="sub">Nyalakan supaya HP berbunyi tiap 1 jam saat waktunya absen.</p>
+        <div className="tumpuk">
+          <EnableReminders vapidPublic={process.env.VAPID_PUBLIC || process.env.NEXT_PUBLIC_VAPID_PUBLIC || ""} />
+          <Link href="/riwayat" className="btn-ghost">Lihat riwayat absen saya</Link>
+        </div>
+      </div>
     </div>
   );
 }

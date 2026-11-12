@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { distanceMeters } from "@/lib/geo";
+import { JEDA_MENIT, BATAS_MENIT, TOLERANSI_MS } from "@/lib/aturan";
 
 const KINDS = ["MASUK", "CHECKPOINT", "PULANG"];
 
@@ -31,6 +32,29 @@ export async function POST(req) {
     return NextResponse.json({ error: "Sesi tidak ditemukan atau sudah ditutup." }, { status: 404 });
   }
 
+  const now = new Date();
+
+  // Titik cek selalu 60 menit sejak absen terakhir (masuk atau titik cek sebelumnya).
+  let terakhir = null;
+  if (kind === "CHECKPOINT") {
+    terakhir = await prisma.absensi.findFirst({
+      where: { sessionId: session.id, userId: user.id, kind: { in: ["MASUK", "CHECKPOINT"] } },
+      orderBy: { checkedAt: "desc" },
+    });
+    if (!terakhir) {
+      return NextResponse.json({ error: "Absen masuk dulu sebelum titik cek." }, { status: 400 });
+    }
+    const jatuhTempo = terakhir.checkedAt.getTime() + JEDA_MENIT * 60000;
+    if (now.getTime() < jatuhTempo - TOLERANSI_MS) {
+      return NextResponse.json({ error: "Belum waktunya titik cek berikutnya." }, { status: 409 });
+    }
+  }
+
+  // Absen pulang hanya dibuka setelah jam selesai shift sesi.
+  if (kind === "PULANG" && now.getTime() < session.endAt.getTime() - TOLERANSI_MS) {
+    return NextResponse.json({ error: "Absen pulang baru dibuka saat shift selesai." }, { status: 409 });
+  }
+
   const photoHash = createHash("sha256").update(photo).digest("hex");
   // Tolak foto yang persis sama dalam sesi yang sama (cegah absen pakai foto orang lain).
   const dup = await prisma.absensi.findFirst({
@@ -46,7 +70,6 @@ export async function POST(req) {
   const ev = session.event;
   const distanceM = distanceMeters(lat, lng, ev.lat, ev.lng);
   const insideRadius = distanceM <= ev.radiusM;
-  const now = new Date();
 
   const acc = Number.isFinite(accuracyM) ? Math.round(accuracyM) : null;
   const notes = [];
@@ -63,15 +86,24 @@ export async function POST(req) {
     }
   }
 
+  if (kind === "CHECKPOINT") {
+    const batas = terakhir.checkedAt.getTime() + (JEDA_MENIT + BATAS_MENIT) * 60000;
+    if (now.getTime() > batas) {
+      status = "TERLAMBAT";
+      const telat = Math.round((now.getTime() - batas) / 60000) + BATAS_MENIT;
+      notes.push(`Titik cek terlambat ${telat} menit dari waktunya`);
+    }
+  }
+
   // Saat pulang: hitung titik cek yang terlewat, jadikan catatan (tidak memotong apa pun).
-  if (kind === "PULANG" && session.checkpointMinutes > 0) {
+  if (kind === "PULANG") {
     const masuk = await prisma.absensi.findFirst({
       where: { sessionId: session.id, userId: user.id, kind: "MASUK" },
       orderBy: { checkedAt: "asc" },
     });
     if (masuk) {
       const durationMin = (now - masuk.checkedAt) / 60000;
-      const expected = Math.floor(durationMin / session.checkpointMinutes);
+      const expected = Math.floor(durationMin / JEDA_MENIT);
       const actual = await prisma.absensi.count({
         where: { sessionId: session.id, userId: user.id, kind: "CHECKPOINT" },
       });
