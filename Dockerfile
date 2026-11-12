@@ -3,10 +3,11 @@ FROM node:22-slim
 WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-certificates && rm -rf /var/lib/apt/lists/*
 COPY . .
-ARG NEXT_PUBLIC_VAPID_PUBLIC
-ENV NEXT_PUBLIC_VAPID_PUBLIC=$NEXT_PUBLIC_VAPID_PUBLIC
 RUN npm ci && npm run build && chown -R node:node .next
-ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 PORT=3000 HOSTNAME=0.0.0.0
+# Foto absen disimpan sebagai berkas di volume /data/fotos (dipasang dari Coolify).
+# Foldernya dibuat di image supaya volume baru ikut dimiliki user node.
+RUN mkdir -p /data/fotos && chown -R node:node /data
+ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 PORT=3000 HOSTNAME=0.0.0.0 FOTO_DIR=/data/fotos NODE_OPTIONS=--max-old-space-size=768
 USER node
 EXPOSE 3000
 # Coolify menunggu container baru sehat sebelum mematikan yang lama.

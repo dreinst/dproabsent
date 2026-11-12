@@ -5,7 +5,6 @@ import { prisma } from "@/lib/prisma";
 import { fmtWaktu, fmtSingkat } from "@/lib/waktu";
 import LogoutButton from "@/components/LogoutButton";
 import AbsenPanel from "@/components/AbsenPanel";
-import EnableReminders from "@/components/EnableReminders";
 
 export const dynamic = "force-dynamic";
 
@@ -24,7 +23,8 @@ export default async function CrewHome() {
     where: { event: { active: true } },
     include: {
       event: true,
-      absensi: { where: { userId: user.id }, orderBy: { checkedAt: "asc" } },
+      // omit photo: foto diambil lewat /api/foto/[id], tidak ikut dimuat dari database.
+      absensi: { where: { userId: user.id }, orderBy: { checkedAt: "asc" }, omit: { photo: true } },
     },
     orderBy: { startAt: "asc" },
   });
@@ -80,7 +80,6 @@ export default async function CrewHome() {
                 distanceM: a.distanceM,
                 insideRadius: a.insideRadius,
                 activity: a.activity,
-                photo: a.photo,
                 note: a.note,
               }))}
             />
@@ -88,14 +87,7 @@ export default async function CrewHome() {
         );
       })}
 
-      <div className="card">
-        <h2>Pengingat absen</h2>
-        <p className="sub">Nyalakan supaya HP berbunyi tiap 1 jam saat waktunya absen.</p>
-        <div className="tumpuk">
-          <EnableReminders vapidPublic={process.env.VAPID_PUBLIC || process.env.NEXT_PUBLIC_VAPID_PUBLIC || ""} />
-          <Link href="/riwayat" className="btn-ghost">Lihat riwayat absen saya</Link>
-        </div>
-      </div>
+      <Link href="/riwayat" className="btn-ghost">Lihat riwayat absen saya</Link>
     </div>
   );
 }

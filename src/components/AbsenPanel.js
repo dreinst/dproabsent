@@ -112,14 +112,14 @@ export default function AbsenPanel({ session, existing, lastAt }) {
   function capture() {
     const v = videoRef.current;
     if (!v || !v.videoWidth) return;
-    const max = 800;
+    const max = 720;
     const scale = Math.min(1, max / Math.max(v.videoWidth, v.videoHeight));
     const w = Math.round(v.videoWidth * scale);
     const h = Math.round(v.videoHeight * scale);
     const canvas = document.createElement("canvas");
     canvas.width = w; canvas.height = h;
     canvas.getContext("2d").drawImage(v, 0, 0, w, h);
-    setShot(canvas.toDataURL("image/jpeg", 0.7));
+    setShot(canvas.toDataURL("image/jpeg", 0.65));
     stopCamera();
   }
 
@@ -235,7 +235,7 @@ export default function AbsenPanel({ session, existing, lastAt }) {
             <div key={e.id}>
               <div className="absen-baris">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                {e.photo && <img className="thumb kecil" src={e.photo} alt={`Foto ${KIND[e.kind]}`} />}
+                <img className="thumb kecil" loading="lazy" src={`/api/foto/${e.id}`} alt={`Foto ${KIND[e.kind]}`} />
                 <div className="grow">
                   <div className="tebal" style={{ fontSize: 14 }}>{KIND[e.kind]}</div>
                   <div className="meta" style={{ fontSize: 12 }}>

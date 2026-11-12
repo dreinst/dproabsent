@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { distanceMeters } from "@/lib/geo";
+import { simpanFoto, hapusFoto, FotoError, MAKS_BYTE } from "@/lib/foto";
 import { JEDA_MENIT, BATAS_MENIT, TOLERANSI_MS } from "@/lib/aturan";
 
 const KINDS = ["MASUK", "CHECKPOINT", "PULANG"];
@@ -11,6 +12,11 @@ export async function POST(req) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Belum masuk." }, { status: 401 });
 
+  // Tolak badan permintaan yang jelas terlalu besar sebelum dibaca ke memori.
+  const panjang = Number(req.headers.get("content-length") || 0);
+  if (panjang > MAKS_BYTE * 1.5) {
+    return NextResponse.json({ error: "Ukuran foto terlalu besar." }, { status: 413 });
+  }
   const body = await req.json().catch(() => ({}));
   const { sessionId, kind, lat, lng, photo, activity, accuracyM } = body;
 
@@ -20,7 +26,7 @@ export async function POST(req) {
   if (typeof lat !== "number" || typeof lng !== "number") {
     return NextResponse.json({ error: "Lokasi tidak terbaca. Izinkan akses lokasi lalu coba lagi." }, { status: 400 });
   }
-  if (!photo || !photo.startsWith("data:image/")) {
+  if (typeof photo !== "string" || !photo.startsWith("data:image/")) {
     return NextResponse.json({ error: "Foto wajib diambil dari kamera." }, { status: 400 });
   }
 
@@ -112,23 +118,38 @@ export async function POST(req) {
     }
   }
 
-  const row = await prisma.absensi.create({
-    data: {
-      sessionId: session.id,
-      userId: user.id,
-      kind,
-      status,
-      lat,
-      lng,
-      accuracyM: acc,
-      distanceM,
-      insideRadius,
-      photo,
-      photoHash,
-      activity: (activity || "").trim().slice(0, 300) || null,
-      note: notes.join(". ") || null,
-    },
-  });
+  // Kecilkan dan simpan sebagai berkas; kolom photo hanya menyimpan path-nya.
+  let fotoRel;
+  try {
+    ({ rel: fotoRel } = await simpanFoto(photo));
+  } catch (e) {
+    if (e instanceof FotoError) return NextResponse.json({ error: e.message }, { status: 400 });
+    throw e;
+  }
+
+  let row;
+  try {
+    row = await prisma.absensi.create({
+      data: {
+        sessionId: session.id,
+        userId: user.id,
+        kind,
+        status,
+        lat,
+        lng,
+        accuracyM: acc,
+        distanceM,
+        insideRadius,
+        photo: fotoRel,
+        photoHash,
+        activity: (activity || "").trim().slice(0, 300) || null,
+        note: notes.join(". ") || null,
+      },
+    });
+  } catch (e) {
+    await hapusFoto(fotoRel);
+    throw e;
+  }
 
   return NextResponse.json({ ok: true, id: row.id, status, distanceM, insideRadius, note: row.note });
 }

@@ -34,6 +34,7 @@ export default async function AdminPage({ searchParams }) {
     prisma.absensi.findMany({
       where: { ...SARING[f], ...cari },
       include: { user: true, session: { include: { event: true } } },
+      omit: { photo: true },
       orderBy: { checkedAt: "desc" },
       take: 100,
     }),
@@ -62,7 +63,7 @@ export default async function AdminPage({ searchParams }) {
         {rows.map((r) => (
           <div className="baris" style={KOL} key={r.id}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <div><img className="thumb" src={r.photo} alt={`Foto absen ${r.user.name}`} /></div>
+            <div><img className="thumb" loading="lazy" src={`/api/foto/${r.id}`} alt={`Foto absen ${r.user.name}`} /></div>
             <div className="lebar">
               <div className="tebal">{r.user.name}</div>
               {r.activity && <div className="meta">{r.activity}</div>}

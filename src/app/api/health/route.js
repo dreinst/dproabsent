@@ -1,20 +1,12 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-// Diagnosa: apakah env ada dan DB bisa dijangkau dari server.
+// Untuk pemantauan: hanya melapor hidup atau tidak, tanpa detail internal.
 export async function GET() {
-  const out = {
-    hasDbUrl: !!process.env.DATABASE_URL,
-    hasAuthSecret: !!process.env.AUTH_SECRET,
-    db: "unknown",
-  };
   try {
-    const n = await prisma.user.count();
-    out.db = "ok";
-    out.users = n;
-  } catch (e) {
-    out.db = "error";
-    out.error = String(e.message || e).slice(0, 300);
+    await prisma.$queryRaw`SELECT 1`;
+    return NextResponse.json({ ok: true });
+  } catch {
+    return NextResponse.json({ ok: false }, { status: 503 });
   }
-  return NextResponse.json(out);
 }

@@ -3,7 +3,15 @@ import { cookies } from "next/headers";
 import { prisma } from "./prisma";
 
 const COOKIE = "dproabsent_session";
-const SECRET = process.env.AUTH_SECRET || "dev-secret-ganti-di-produksi";
+const MASA_SESI_DETIK = 60 * 60 * 12; // 12 jam, juga tertanam di dalam token
+
+// Di produksi, jangan pernah jalan dengan rahasia cadangan.
+function rahasia() {
+  const s = process.env.AUTH_SECRET;
+  if (s) return s;
+  if (process.env.NODE_ENV === "production") throw new Error("AUTH_SECRET belum diisi.");
+  return "dev-secret-hanya-lokal";
+}
 
 export function normalizePhone(input) {
   let p = String(input || "").replace(/\D/g, "");
@@ -13,7 +21,7 @@ export function normalizePhone(input) {
 }
 
 function sign(value) {
-  const mac = createHmac("sha256", SECRET).update(value).digest("hex");
+  const mac = createHmac("sha256", rahasia()).update(value).digest("hex");
   return `${value}.${mac}`;
 }
 
@@ -22,7 +30,7 @@ function unsign(token) {
   const idx = token.lastIndexOf(".");
   const value = token.slice(0, idx);
   const mac = token.slice(idx + 1);
-  const expected = createHmac("sha256", SECRET).update(value).digest("hex");
+  const expected = createHmac("sha256", rahasia()).update(value).digest("hex");
   const a = Buffer.from(mac);
   const b = Buffer.from(expected);
   if (a.length !== b.length || !timingSafeEqual(a, b)) return null;
@@ -31,12 +39,13 @@ function unsign(token) {
 
 export async function setSession(userId) {
   const jar = await cookies();
-  jar.set(COOKIE, sign(String(userId)), {
+  const exp = Math.floor(Date.now() / 1000) + MASA_SESI_DETIK;
+  jar.set(COOKIE, sign(`${userId}.${exp}`), {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
     path: "/",
-    maxAge: 60 * 60 * 12, // 12 jam
+    maxAge: MASA_SESI_DETIK,
   });
 }
 
@@ -48,8 +57,11 @@ export async function clearSession() {
 export async function getCurrentUser() {
   const jar = await cookies();
   const token = jar.get(COOKIE)?.value;
-  const id = unsign(token);
-  if (!id) return null;
+  const nilai = unsign(token);
+  if (!nilai) return null;
+  const [id, exp] = nilai.split(".");
+  // Token yang sudah lewat masa berlakunya ditolak walau cookie-nya masih tersimpan.
+  if (!id || !(Number(exp) > Date.now() / 1000)) return null;
   const user = await prisma.user.findUnique({ where: { id: Number(id) } });
   if (!user || !user.active) return null;
   return user;

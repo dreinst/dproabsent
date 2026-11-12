@@ -16,6 +16,7 @@ export default async function RiwayatPage() {
   const rows = await prisma.absensi.findMany({
     where: { userId: user.id },
     include: { session: { include: { event: true } } },
+    omit: { photo: true },
     orderBy: { checkedAt: "desc" },
     take: 200,
   });
@@ -42,7 +43,7 @@ export default async function RiwayatPage() {
       {rows.map((r) => (
         <div className="riwayat" key={r.id}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img className="thumb besar" src={r.photo} alt={`Foto ${KIND[r.kind]}`} />
+          <img className="thumb besar" loading="lazy" src={`/api/foto/${r.id}`} alt={`Foto ${KIND[r.kind]}`} />
           <div className="grow">
             <div className="tebal" style={{ fontSize: 15 }}>{r.session.event.name}</div>
             <div className="meta" style={{ margin: "2px 0 6px" }}>
