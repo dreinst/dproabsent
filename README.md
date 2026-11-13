@@ -4,7 +4,7 @@ Absensi crew D'Production berbasis web: login pakai nomor HP, absen dengan foto 
 
 ## Fitur
 
-- Login crew dan admin pakai nomor HP dan password. Nomor boleh diketik `08...`, `62...`, atau `+62...`; di database tersimpan sebagai `628...`. Gagal 5 kali per nomor (atau 40 kali per IP) terkunci 15 menit.
+- Login crew pakai nomor HP dan password. Owner dan superadmin masuk pakai nama (depan atau lengkap), tanpa nomor. Nomor boleh diketik `08...`, `62...`, atau `+62...`; di database tersimpan sebagai `628...`. Gagal 5 kali per nomor atau nama (atau 40 kali per IP) terkunci 15 menit.
 - Password awal crew: nama depan huruf kecil ditambah 4 angka terakhir nomor HP (`scripts/reset-password-crew.mjs`).
 - Satu tombol besar di layar crew yang berganti sendiri: Absen masuk, lalu Absen titik cek, lalu Absen pulang.
 - Titik cek selalu 60 menit sejak absen terakhir. Crew punya 5 menit; lewat itu tetap diterima tapi ditandai terlambat.
@@ -27,10 +27,10 @@ Pengganti kolom `checkAbsent` (1/2) sistem lama: status faktual pakai enum `Hadi
 
 ## Akun demo (hasil seed, bukan data asli)
 
-| Peran | Nomor HP | Password |
+| Peran | Nomor HP atau nama | Password |
 |---|---|---|
-| Owner | 08000000001 | owner123 |
-| Superadmin | 08000000002 | super123 |
+| Owner | owner | owner123 |
+| Superadmin | andrew | super123 |
 | Crew | 08000000011 | crew123 |
 | Crew | 08000000012 | crew123 |
 

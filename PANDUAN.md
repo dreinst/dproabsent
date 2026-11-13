@@ -12,7 +12,9 @@ Panduan ini untuk superadmin. Bagian crew bisa diteruskan ke tim lapangan.
 
 Password awal crew adalah nama depan huruf kecil ditambah 4 angka terakhir nomor HP yang terdaftar. Rama dengan nomor 0812xxxx4321 memakai `rama4321`.
 
-Salah password 5 kali membuat nomor itu terkunci 15 menit.
+Owner dan superadmin tidak perlu nomor: tekan "Masuk sebagai owner atau superadmin", lalu isi nama depan (contoh: `andrew`) dan password.
+
+Salah password 5 kali membuat nomor atau nama itu terkunci 15 menit.
 
 Crew masuk ke halaman absen. Owner dan superadmin masuk ke halaman admin.
 
