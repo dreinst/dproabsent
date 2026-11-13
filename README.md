@@ -1,10 +1,10 @@
 # DPro Absen
 
-Absensi crew D'Production berbasis web: login pakai nama, absen dengan foto kamera dan lokasi GPS, dengan batas radius acara. Verifikasi oleh owner dan superadmin.
+Absensi crew D'Production berbasis web: login pakai nomor HP, absen dengan foto kamera dan lokasi GPS, dengan batas radius acara. Verifikasi oleh owner dan superadmin.
 
 ## Fitur
 
-- Login crew dan admin pakai nama (depan atau lengkap) dan password. Tanda baca dan huruf besar diabaikan. Akun bernama sama dibedakan lewat passwordnya. Gagal 5 kali per nama (atau 40 kali per IP) terkunci 15 menit.
+- Login crew dan admin pakai nomor HP dan password. Nomor boleh diketik `08...`, `62...`, atau `+62...`; di database tersimpan sebagai `628...`. Gagal 5 kali per nomor (atau 40 kali per IP) terkunci 15 menit.
 - Password awal crew: nama depan huruf kecil ditambah 4 angka terakhir nomor HP (`scripts/reset-password-crew.mjs`).
 - Satu tombol besar di layar crew yang berganti sendiri: Absen masuk, lalu Absen titik cek, lalu Absen pulang.
 - Titik cek selalu 60 menit sejak absen terakhir. Crew punya 5 menit; lewat itu tetap diterima tapi ditandai terlambat.
@@ -27,13 +27,12 @@ Pengganti kolom `checkAbsent` (1/2) sistem lama: status faktual pakai enum `Hadi
 
 ## Akun demo (hasil seed, bukan data asli)
 
-| Peran | Nama untuk login | Password |
+| Peran | Nomor HP | Password |
 |---|---|---|
-| Owner | owner | owner123 |
-| Superadmin | andrew | super123 |
-| Crew | crew | crew123 |
-
-Dua akun crew demo bernama depan sama dan passwordnya sama, jadi login `crew` ditolak. Pakai nama lengkapnya (`crew satu`, `crew dua`).
+| Owner | 08000000001 | owner123 |
+| Superadmin | 08000000002 | super123 |
+| Crew | 08000000011 | crew123 |
+| Crew | 08000000012 | crew123 |
 
 Catatan: kamera dan GPS hanya berjalan lewat HTTPS atau localhost.
 

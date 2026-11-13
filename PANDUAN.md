@@ -7,12 +7,12 @@ Panduan ini untuk superadmin. Bagian crew bisa diteruskan ke tim lapangan.
 ## Masuk
 
 1. Buka web absen di HP. Kamera dan lokasi hanya jalan lewat HTTPS, jadi pakai alamat di atas.
-2. Isi Nama dengan nama depan, huruf besar atau kecil sama saja. Contoh: `rama`.
+2. Isi Nomor HP yang terdaftar, diketik seperti biasa dengan awalan 08. Contoh: `081234564321`. Awalan 62 atau +62 juga diterima.
 3. Isi password, lalu tekan Masuk.
 
 Password awal crew adalah nama depan huruf kecil ditambah 4 angka terakhir nomor HP yang terdaftar. Rama dengan nomor 0812xxxx4321 memakai `rama4321`.
 
-Kalau ada dua orang bernama sama, keduanya tetap bisa masuk dengan nama yang sama, karena password mereka berbeda. Salah password 5 kali membuat nama itu terkunci 15 menit.
+Salah password 5 kali membuat nomor itu terkunci 15 menit.
 
 Crew masuk ke halaman absen. Owner dan superadmin masuk ke halaman admin.
 
