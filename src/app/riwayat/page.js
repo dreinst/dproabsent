@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { getCurrentUser, isAdmin } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { fmtTanggal } from "@/lib/waktu";
 import { KIND, STATUS, nadaStatus } from "@/lib/label";
@@ -11,7 +11,6 @@ export const dynamic = "force-dynamic";
 export default async function RiwayatPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
-  if (isAdmin(user)) redirect("/admin");
 
   const rows = await prisma.absensi.findMany({
     where: { userId: user.id },

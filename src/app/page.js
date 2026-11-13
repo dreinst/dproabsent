@@ -17,7 +17,8 @@ function lastAt(absensi) {
 export default async function CrewHome() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
-  if (isAdmin(user)) redirect("/admin");
+  // Owner dan superadmin kadang turun jadi crew, jadi mereka juga boleh absen di sini.
+  const admin = isAdmin(user);
 
   const sessions = await prisma.session.findMany({
     where: { event: { active: true } },
@@ -35,7 +36,10 @@ export default async function CrewHome() {
       <div className="topbar">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img className="brand-logo" src="/logo-dpro.svg" alt="D'Production" />
-        <LogoutButton />
+        <div className="row">
+          {admin && <Link href="/admin" className="btn-ghost btn-kecil">Panel admin</Link>}
+          <LogoutButton />
+        </div>
       </div>
       <div className="judul">
         <h1>Absen saya</h1>

@@ -17,6 +17,7 @@ export default function AdminShell({ user, tab, title, sub, aksi, pesan = {}, ch
         {MENU.map(([href, label]) => (
           <Link key={href} href={href} className={href === tab ? "menu on" : "menu"}>{label}</Link>
         ))}
+        <Link href="/" className="menu">Absen saya</Link>
         <div className="akun">
           <b>{user.name}</b>
           <span>{PERAN[user.role]}</span>
