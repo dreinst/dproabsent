@@ -1,5 +1,6 @@
 "use server";
 
+import { createHash } from "node:crypto";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser, isAdmin, normalizePhone } from "@/lib/auth";
@@ -154,4 +155,47 @@ export async function simpanCrew(f) {
   if (id) await prisma.user.update({ where: { id }, data });
   else await prisma.user.create({ data });
   kembali(path, "ok", id ? `Akun ${name} disimpan.` : `Akun ${name} dibuat.`);
+}
+
+// Gambar abu-abu kecil sebagai pengganti foto untuk absen yang dicatat admin.
+const TANPA_FOTO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAACXBIWXMAAAPoAAAD6AG1e1JrAAAAEUlEQVQImWN49OIDVsQwtCQAK0Sugatr8jQAAAAASUVORK5CYII=";
+
+// Crew lupa absen pulang: admin mencatatkan pulang di jam selesai shift, tanpa foto, langsung sah.
+export async function catatPulang(f) {
+  const admin = await wajibAdmin();
+  const path = "/admin?f=pulang";
+  const masuk = await prisma.absensi.findUnique({
+    where: { id: bulat(f, "id") || 0 },
+    omit: { photo: true },
+    include: { user: true, session: { include: { event: true } } },
+  });
+  if (!masuk || masuk.kind !== "MASUK") sambung(path, "err", "Absen masuk tidak ditemukan.");
+  if (masuk.session.endAt > new Date()) sambung(path, "err", "Shift belum selesai, crew masih bisa absen pulang sendiri.");
+  const sudah = await prisma.absensi.findFirst({
+    where: { sessionId: masuk.sessionId, userId: masuk.userId, kind: "PULANG" },
+    select: { id: true },
+  });
+  if (sudah) sambung(path, "err", `${masuk.user.name} sudah punya absen pulang di sesi ini.`);
+
+  // Hash dibuat unik per crew dan sesi supaya tidak bentrok dengan pemeriksaan foto identik.
+  const photoHash = createHash("sha256").update(`pulang-admin:${masuk.sessionId}:${masuk.userId}`).digest("hex");
+  await prisma.absensi.create({
+    data: {
+      sessionId: masuk.sessionId,
+      userId: masuk.userId,
+      kind: "PULANG",
+      status: "HADIR",
+      checkedAt: masuk.session.endAt,
+      lat: masuk.session.event.lat,
+      lng: masuk.session.event.lng,
+      distanceM: 0,
+      insideRadius: true,
+      photo: TANPA_FOTO,
+      photoHash,
+      note: `Pulang dicatat oleh ${admin.name} karena crew lupa absen, tanpa foto dan lokasi`,
+      verifiedById: admin.id,
+      verifiedAt: new Date(),
+    },
+  });
+  sambung(path, "ok", `Pulang ${masuk.user.name} dicatat di jam selesai shift.`);
 }

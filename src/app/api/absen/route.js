@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { distanceMeters } from "@/lib/geo";
 import { simpanFoto, hapusFoto, FotoError, MAKS_BYTE } from "@/lib/foto";
-import { JEDA_MENIT, BATAS_MENIT, TOLERANSI_MS } from "@/lib/aturan";
+import { JEDA_MENIT, BATAS_MENIT, TOLERANSI_MS, PULANG_TELAT_MENIT } from "@/lib/aturan";
 
 const KINDS = ["MASUK", "CHECKPOINT", "PULANG"];
 
@@ -107,8 +107,13 @@ export async function POST(req) {
       where: { sessionId: session.id, userId: user.id, kind: "MASUK" },
       orderBy: { checkedAt: "asc" },
     });
+    // Crew yang lupa absen pulang masih bisa menyusul. Jamnya tetap jam saat tombol ditekan, jadi diberi catatan.
+    const lewat = Math.round((now - session.endAt) / 60000);
+    if (lewat > PULANG_TELAT_MENIT) notes.push(`Pulang dicatat ${lewat} menit setelah shift selesai`);
     if (masuk) {
-      const durationMin = (now - masuk.checkedAt) / 60000;
+      // Titik cek hanya dihitung sampai jam selesai shift, supaya pulang yang menyusul tidak menambah titik cek terlewat.
+      const akhir = Math.min(now.getTime(), session.endAt.getTime());
+      const durationMin = Math.max(0, akhir - masuk.checkedAt.getTime()) / 60000;
       const expected = Math.floor(durationMin / JEDA_MENIT);
       const actual = await prisma.absensi.count({
         where: { sessionId: session.id, userId: user.id, kind: "CHECKPOINT" },

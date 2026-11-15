@@ -5,6 +5,7 @@ import { fmtSingkat } from "@/lib/waktu";
 import { KIND, STATUS, nadaStatus } from "@/lib/label";
 import AdminShell, { Cari, Saring } from "@/components/AdminShell";
 import AdminActions from "@/components/AdminActions";
+import { catatPulang } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -13,6 +14,18 @@ const SARING = {
   luar: { insideRadius: false },
   telat: { status: "TERLAMBAT" },
 };
+const KOL_PULANG = { "--kol": "1.1fr 1.4fr 130px 130px 150px" };
+
+// Absen masuk yang shift-nya sudah selesai tapi belum ada absen pulang. Data impor lama dan absen yang ditolak tidak ikut.
+const belumPulang = (now) => prisma.$queryRaw`
+  SELECT m.id FROM "Absensi" m JOIN "Session" s ON s.id = m."sessionId"
+  WHERE m.kind = 'MASUK' AND m.status <> 'TIDAK_HADIR' AND s."endAt" < ${now}
+    AND COALESCE(m.note, '') NOT LIKE 'Data lama%'
+    AND NOT EXISTS (
+      SELECT 1 FROM "Absensi" p
+      WHERE p."sessionId" = m."sessionId" AND p."userId" = m."userId" AND p.kind = 'PULANG')
+  ORDER BY s."endAt" DESC`;
+
 const KOL = { "--kol": "56px 1.1fr 1.3fr 110px 1.3fr 170px" };
 
 export default async function AdminPage({ searchParams }) {
@@ -21,7 +34,7 @@ export default async function AdminPage({ searchParams }) {
   if (!isAdmin(user)) redirect("/");
 
   const sp = await searchParams;
-  const f = SARING[sp.f] ? sp.f : "";
+  const f = SARING[sp.f] || sp.f === "pulang" ? sp.f : "";
   const q = String(sp.q || "").trim();
   const cari = q
     ? { OR: [
@@ -30,9 +43,10 @@ export default async function AdminPage({ searchParams }) {
       ] }
     : {};
 
+  const idPulang = (await belumPulang(new Date())).map((r) => r.id);
   const [rows, semua, belum, luar, telat] = await Promise.all([
     prisma.absensi.findMany({
-      where: { ...SARING[f], ...cari },
+      where: { ...(f === "pulang" ? { id: { in: idPulang } } : SARING[f]), ...cari },
       include: { user: true, session: { include: { event: true } } },
       omit: { photo: true },
       orderBy: { checkedAt: "desc" },
@@ -48,12 +62,44 @@ export default async function AdminPage({ searchParams }) {
     <AdminShell
       user={user} tab="/admin" title="Verifikasi absen"
       sub="Sahkan absen yang benar, tolak yang tidak sesuai."
+      pesan={sp}
       aksi={<Cari q={q} f={f} placeholder="Cari nama crew atau acara" />}
     >
       <Saring base="/admin" f={f} q={q} pilihan={[
         ["", `Semua ${semua}`], ["belum", `Belum disahkan ${belum}`],
         ["luar", `Di luar radius ${luar}`], ["telat", `Terlambat ${telat}`],
+        ["pulang", `Belum pulang ${idPulang.length}`],
       ]} />
+
+      {f === "pulang" ? (
+        <>
+          <div className="tabel">
+            <div className="baris kop" style={KOL_PULANG}>
+              <div>Crew</div><div>Acara dan sesi</div><div>Masuk</div><div>Shift selesai</div><div>Aksi</div>
+            </div>
+            {rows.length === 0 && <div className="kosong">Tidak ada crew yang lupa absen pulang.</div>}
+            {rows.map((r) => (
+              <div className="baris" style={KOL_PULANG} key={r.id}>
+                <div className="tebal">{r.user.name}</div>
+                <div className="lebar">
+                  <div className="tebal">{r.session.event.name}</div>
+                  <div className="meta">{r.session.jobdesc}</div>
+                </div>
+                <div>{fmtSingkat(r.checkedAt)}</div>
+                <div>{fmtSingkat(r.session.endAt)}</div>
+                <div>
+                  <form action={catatPulang}>
+                    <input type="hidden" name="id" value={r.id} />
+                    <button className="btn-primary btn-kecil">Catat pulang</button>
+                  </form>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="meta">Crew masih bisa absen pulang sendiri selama acaranya aktif. Kalau dicatat dari sini, jam pulang memakai jam selesai shift dan tanpa foto.</div>
+        </>
+      ) : (
+      <>
 
       <div className="tabel">
         <div className="baris kop" style={KOL}>
@@ -86,6 +132,8 @@ export default async function AdminPage({ searchParams }) {
         ))}
       </div>
       <div className="meta">Menampilkan {rows.length} absen terbaru.</div>
+      </>
+      )}
     </AdminShell>
   );
 }

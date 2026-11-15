@@ -30,7 +30,7 @@ Tidak ada notifikasi, jadi crew membuka aplikasinya sendiri untuk melihat hitung
 
 Setiap absen butuh foto langsung dari kamera dan lokasi GPS. Izinkan keduanya saat browser bertanya. Setelah memotret, crew mengetik singkat sedang mengerjakan apa, lalu menekan Kirim. Foto yang sama persis dalam satu sesi ditolak.
 
-Absen di luar radius acara tetap tersimpan, tapi ditandai. Titik cek yang terlewat dicatat saat pulang dan tidak memotong honor. Riwayat absen bisa dibuka lewat tautan "Lihat riwayat absen saya" di bawah layar.
+Absen di luar radius acara tetap tersimpan, tapi ditandai. Titik cek yang terlewat dicatat saat pulang dan tidak memotong honor. Kalau lupa absen pulang, crew masih bisa menyusul selama acaranya aktif. Jam yang tercatat adalah jam saat tombol ditekan, dan absennya diberi catatan berapa menit setelah shift selesai. Riwayat absen bisa dibuka lewat tautan "Lihat riwayat absen saya" di bawah layar.
 
 ## Untuk superadmin
 
@@ -43,6 +43,8 @@ Halaman admin punya tiga bagian:
 Akun yang dinonaktifkan tidak bisa masuk, tapi riwayat absennya tetap ada.
 
 Jam selesai sesi menentukan kapan tombol pulang muncul, jadi isi dengan jam selesai shift yang sebenarnya.
+
+Crew yang lupa absen pulang muncul di menu Verifikasi, tab "Belum pulang". Tombol "Catat pulang" mencatatkan pulangnya di jam selesai shift, tanpa foto, dan langsung sah. Tombol ini tetap bisa dipakai setelah acaranya dinonaktifkan.
 
 ## Kalau ada masalah
 
