@@ -240,6 +240,8 @@ summary::-webkit-details-marker { display: none; }
 /* Verifikasi: baris saringan bertingkat dan foto absen yang bisa diperbesar */
 .saring-baris { display: flex; align-items: center; gap: 8px 12px; flex-wrap: wrap; margin-bottom: 12px; }
 .saring-baris .saring { margin-bottom: 0; }
+/* Penanda penyegaran otomatis di bawah judul halaman admin */
+.segar-otomatis { display: block; margin-top: 4px; font-size: 12px; color: var(--muted); }
 .saring-judul { font-size: 12px; font-weight: 600; color: var(--muted); min-width: 56px; }
 .chip small { font-size: 11px; opacity: 0.7; margin-left: 4px; }
 .pilih-acara { height: 40px; width: 100%; max-width: 480px; min-width: 240px; border-radius: 999px; border: 0; padding: 0 16px; font-size: 13px; background: #fff; color: var(--text); }

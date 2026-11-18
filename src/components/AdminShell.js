@@ -1,5 +1,6 @@
 import Link from "next/link";
 import LogoutButton from "@/components/LogoutButton";
+import SegarOtomatis from "@/components/SegarOtomatis";
 
 const MENU = [
   ["/admin", "Verifikasi"],
@@ -26,7 +27,7 @@ export default function AdminShell({ user, tab, title, sub, aksi, pesan = {}, ch
       </aside>
       <main className="isi">
         <div className="kepala">
-          <div className="judul"><h1>{title}</h1><p>{sub}</p></div>
+          <div className="judul"><h1>{title}</h1><p>{sub}</p><SegarOtomatis /></div>
           {aksi}
         </div>
         {pesan.err && <div className="err" style={{ marginBottom: 16 }}>{pesan.err}</div>}
