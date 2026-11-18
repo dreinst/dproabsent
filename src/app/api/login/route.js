@@ -6,7 +6,8 @@ import { sisaTunggu, catatGagal, hapusCatatan } from "@/lib/batas";
 import { rapikanNama, namaDepan } from "@/lib/nama";
 
 const MAKS_PER_NOMOR = 5;
-const MAKS_PER_IP = 40;
+// Ratusan crew di satu WiFi venue berbagi satu IP, jadi batas per IP dibuat longgar. Batas utama tetap per nomor.
+const MAKS_PER_IP = 300;
 
 export async function POST(req) {
   const { phone, password } = await req.json().catch(() => ({}));
@@ -53,6 +54,6 @@ export async function POST(req) {
   }
 
   await hapusCatatan(kunciNomor);
-  await setSession(user.id);
+  await setSession(user.id, user.role);
   return NextResponse.json({ ok: true, role: user.role });
 }

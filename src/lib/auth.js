@@ -3,7 +3,10 @@ import { cookies } from "next/headers";
 import { prisma } from "./prisma";
 
 const COOKIE = "dproabsent_session";
-const MASA_SESI_DETIK = 60 * 60 * 12; // 12 jam, juga tertanam di dalam token
+// Masa berlaku login, juga tertanam di dalam token. Admin 12 jam. Crew 30 hari supaya cukup masuk sekali
+// sebelum acara, sehingga tidak ada antrean login (cek password memakan CPU) saat shift dimulai.
+const MASA_SESI_ADMIN = 60 * 60 * 12;
+const MASA_SESI_CREW = 60 * 60 * 24 * 30;
 
 // Di produksi, jangan pernah jalan dengan rahasia cadangan.
 function rahasia() {
@@ -37,15 +40,16 @@ function unsign(token) {
   return value;
 }
 
-export async function setSession(userId) {
+export async function setSession(userId, role) {
   const jar = await cookies();
-  const exp = Math.floor(Date.now() / 1000) + MASA_SESI_DETIK;
+  const masa = role === "OWNER" || role === "SUPERADMIN" ? MASA_SESI_ADMIN : MASA_SESI_CREW;
+  const exp = Math.floor(Date.now() / 1000) + masa;
   jar.set(COOKIE, sign(`${userId}.${exp}`), {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
     path: "/",
-    maxAge: MASA_SESI_DETIK,
+    maxAge: masa,
   });
 }
 

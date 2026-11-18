@@ -27,6 +27,9 @@ const { values: opsi } = parseArgs({
     lng: { type: "string", default: "112.63263" },
     foto: { type: "string", default: fileURLToPath(new URL("./foto-dasar.jpg", import.meta.url)) },
     batas: { type: "string", default: "60" },
+    // Semua crew login dulu (tidak dihitung), lalu yang diukur hanya halaman dan absen:
+    // menggambarkan crew yang sudah masuk sebelum acara karena login crew berlaku 30 hari.
+    "masuk-dulu": { type: "boolean", default: false },
   },
 });
 
@@ -105,15 +108,21 @@ function catat(langkah, h, ok) {
   return ok;
 }
 
+const sudahMasuk = new Map(); // nomor crew -> cookie, diisi kalau --masuk-dulu
+const nomor = (i) => `62899${String(i).padStart(7, "0")}`;
+const cookieDari = (h) => (h.headers?.["set-cookie"] || []).map((c) => c.split(";")[0]).join("; ");
+
 async function crew(i, tunda) {
   await new Promise((r) => setTimeout(r, tunda));
   const agent = new lib.Agent({ keepAlive: true, maxSockets: 1 });
   try {
-    const phone = `62899${String(i).padStart(7, "0")}`;
     const json = { "content-type": "application/json" };
-    const masuk = await minta(agent, "POST", "/api/login", json, JSON.stringify({ phone, password: opsi.password }));
-    const cookie = (masuk.headers?.["set-cookie"] || []).map((c) => c.split(";")[0]).join("; ");
-    if (!catat("login", masuk, masuk.status === 200 && cookie !== "")) return;
+    let cookie = sudahMasuk.get(i);
+    if (!cookie) {
+      const masuk = await minta(agent, "POST", "/api/login", json, JSON.stringify({ phone: nomor(i), password: opsi.password }));
+      cookie = cookieDari(masuk);
+      if (!catat("login", masuk, masuk.status === 200 && cookie !== "")) return;
+    }
 
     const halaman = await minta(agent, "GET", "/", { cookie });
     if (!catat("halaman", halaman, halaman.status === 200)) return;
@@ -154,7 +163,21 @@ function ringkas(langkah) {
   };
 }
 
-console.log(`uji-beban ${new Date().toISOString()} url=${DASAR.origin} n=${N} ramp=${opsi.ramp}s crew=${AWAL}..${AWAL + N - 1} sesi=${SESI}`);
+console.log(`uji-beban ${new Date().toISOString()} url=${DASAR.origin} n=${N} ramp=${opsi.ramp}s crew=${AWAL}..${AWAL + N - 1} sesi=${SESI}${opsi["masuk-dulu"] ? " masuk-dulu" : ""}`);
+if (opsi["masuk-dulu"]) {
+  // 20 login berjalan bersamaan sampai semua crew masuk. Waktunya tidak dihitung.
+  let berikut = AWAL;
+  await Promise.all(Array.from({ length: 20 }, async () => {
+    while (berikut < AWAL + N) {
+      const i = berikut++;
+      const agent = new lib.Agent({ keepAlive: false });
+      const masuk = await minta(agent, "POST", "/api/login", { "content-type": "application/json" }, JSON.stringify({ phone: nomor(i), password: opsi.password }));
+      agent.destroy();
+      if (masuk.status === 200 && cookieDari(masuk)) sudahMasuk.set(i, cookieDari(masuk));
+    }
+  }));
+  console.error(`  ${sudahMasuk.size}/${N} crew sudah masuk sebelum uji`);
+}
 const t0 = performance.now();
 const pantau = setInterval(() => {
   console.error(`  ${((performance.now() - t0) / 1000).toFixed(0)} dtk: ${selesaiCrew}/${N} crew selesai`);

@@ -16,32 +16,34 @@ Owner dan superadmin tidak perlu nomor: di kolom yang sama, isi `owner` atau `su
 
 Salah password 5 kali membuat nomor atau nama itu terkunci 15 menit.
 
-Di halaman masuk ada tombol "Butuh bantuan?" untuk langsung chat WhatsApp Andrew: nomor belum terdaftar, password tidak bisa, atau kendala lain. Kalau masuk gagal, tombol yang sesuai juga muncul di bawah pesan galatnya.
+Login crew berlaku 30 hari, jadi crew cukup masuk sekali sebelum tiba di lokasi. Login owner dan superadmin berlaku 12 jam.
+
+Di halaman masuk ada blok "Perlu bantuan?" untuk langsung menghubungi Andrew lewat WhatsApp: Nomor belum terdaftar, Kendala password, atau Kendala lain. Kalau masuk gagal, tombol yang sesuai juga muncul di bawah pesan galatnya.
 
 Crew masuk ke halaman absen. Owner dan superadmin masuk ke halaman admin.
 
 ## Untuk crew
 
-Di bagian atas ada foto profil crew. Foto awalnya diambil dari foto profil WhatsApp kalau terlihat. Crew bisa memasang atau menggantinya sendiri lewat "Pasang foto profil" atau "Ganti foto profil", memakai kamera depan. Di bagian bawah ada tombol "Chat Andrew" untuk kendala saat absen.
+Di bagian atas ada foto profil crew. Foto awalnya diambil dari foto profil WhatsApp kalau terlihat. Crew bisa memasang atau menggantinya sendiri lewat "Pasang foto profil" atau "Ganti foto profil", memakai kamera depan. Di bagian bawah ada tombol "Hubungi Andrew" untuk kendala saat absen.
 
 Layar crew punya satu tombol besar yang berganti sendiri:
 
 1. Absen masuk saat tiba di lokasi.
-2. Absen titik cek sesuai jarak sesinya (bawaan 60 menit) sejak absen terakhir. Jaraknya tertulis di kartu sesi. Layar menampilkan hitung mundurnya. Saat waktunya tiba, crew punya 5 menit. Lewat dari itu absen tetap diterima tapi ditandai terlambat.
+2. Absen progres sesuai jarak sesinya (bawaan 60 menit) sejak absen terakhir. Jaraknya tertulis di kartu sesi. Layar menampilkan hitung mundurnya. Saat waktunya tiba, crew punya 5 menit. Lewat dari itu absen tetap diterima tapi ditandai terlambat.
 3. Absen pulang, yang baru terbuka saat jam selesai sesi.
 
 Tidak ada notifikasi, jadi crew membuka aplikasinya sendiri untuk melihat hitung mundur.
 
-Setiap absen butuh foto langsung dari kamera dan lokasi GPS. Izinkan keduanya saat browser bertanya. Setelah memotret, crew mengetik singkat sedang mengerjakan apa, lalu menekan Kirim. Foto yang sama persis dalam satu sesi ditolak.
+Setiap absen butuh foto langsung dari kamera dan lokasi GPS. Izinkan keduanya saat browser bertanya. Setelah memotret, crew mengisi kolom "Yang dikerjakan", lalu menekan Kirim. Foto yang sama persis dalam satu sesi ditolak.
 
-Absen di luar radius acara tetap tersimpan, tapi ditandai. Titik cek yang terlewat dicatat saat pulang dan tidak memotong honor. Kalau lupa absen pulang, crew masih bisa menyusul selama acaranya aktif. Jam yang tercatat adalah jam saat tombol ditekan, dan absennya diberi catatan berapa menit setelah shift selesai. Riwayat absen bisa dibuka lewat tautan "Lihat riwayat absen saya" di bawah layar.
+Absen di luar radius acara tetap tersimpan, tapi ditandai. Absen progres yang terlewat dicatat saat pulang. Kalau lupa absen pulang, crew masih bisa menyusul selama acaranya aktif. Jam yang tercatat adalah jam saat tombol ditekan, dan absennya diberi catatan berapa menit setelah shift selesai. Riwayat absen bisa dibuka lewat tautan "Lihat riwayat absen saya" di bawah layar.
 
 ## Untuk superadmin
 
 Halaman admin punya tiga bagian:
 
 - Verifikasi absen: sahkan, batalkan sah, atau tolak absen crew. Foto, jarak ke lokasi, keterangan crew, dan catatan otomatis (terlambat, di luar radius, akurasi GPS rendah) tampil di tiap absen. Absen dikelompokkan per crew per sesi, dengan jam tertulis di setiap foto. Tombol "Sahkan semua" mengesahkan semua absen crew itu di sesi tersebut sekaligus. Ketuk foto untuk memperbesarnya. Di foto besar, satu absen tetap bisa disahkan, ditolak, atau dibatalkan sahnya sendiri. Semua halaman admin memperbarui datanya sendiri tiap 1 menit, kecuali saat sedang mengetik atau melihat foto besar. Halaman ini hanya menghitung absen mulai 18 Nov 2026. Absen sebelum itu ada di pilihan "Rekap lama". Absen bisa dipilih per acara, lalu disaring per status: Belum disahkan (tampilan bawaan), Terlambat, Belum pulang, Di luar radius, dan Semua.
-- Acara: buat acara, atur titik lokasi dan radius absen dalam meter, lalu tambah sesi tugas seperti Loading, Gladi, dan Event. Tiap sesi punya jam mulai, jam selesai, batas telat masuk, dan jarak titik cek. Jarak titik cek bawaannya 60 menit dan bisa diubah per sesi antara 10 dan 720 menit, juga saat sesinya sedang berjalan.
+- Acara: buat acara, atur titik lokasi dan radius absen dalam meter, lalu tambah sesi tugas seperti Loading, Gladi, dan Event. Tiap sesi punya jam mulai, jam selesai, batas telat masuk, dan jarak absen progres. Jarak absen progres bawaannya 60 menit dan bisa diubah per sesi antara 10 dan 720 menit, juga saat sesinya sedang berjalan.
 - Crew: tambah akun, ganti password, nonaktifkan akun, dan isi rekening bank. Rekening hanya terlihat oleh owner dan superadmin. Nama selalu disimpan dengan huruf kapital di awal setiap kata, walaupun diketik huruf kecil semua atau kapital semua. Nama yang diketik campuran, misalnya "Aldi (PMI)", hanya dikapitalkan huruf pertamanya.
 - Halaman Acara dan Crew bawaannya hanya menampilkan data yang aktif mulai 18 Nov 2026. Data sebelumnya ada di pilihan "Rekap lama". Kotak cari selalu mencari di semua data. Foto profil crew tampil di daftar Crew dan di kartu Verifikasi, untuk dicocokkan dengan foto absen. Crew tanpa foto ditampilkan dengan inisial namanya.
 
@@ -57,4 +59,4 @@ Crew yang lupa absen pulang muncul di menu Verifikasi, tab "Belum pulang". Tombo
 - Kamera tidak muncul: periksa izin kamera di pengaturan browser.
 - Lupa password: superadmin menggantinya di menu Crew.
 - Terkunci: tunggu 15 menit.
-- Tombol titik cek abu-abu: jarak titik cek sesi itu belum lewat sejak absen terakhir, lihat hitung mundurnya.
+- Tombol "Absen progres" abu-abu: jarak absen progres sesi itu belum lewat sejak absen terakhir, lihat hitung mundurnya.
