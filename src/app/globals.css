@@ -282,3 +282,13 @@ summary::-webkit-details-marker { display: none; }
   .grup-aksi .sahkan-semua { width: 100%; min-height: 44px; }
   .grup-foto { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+
+/* Foto profil: kamera dan tampilan */
+.profil-baris { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
+.profil-teks { min-width: 0; display: grid; gap: 2px; justify-items: start; }
+.profil-nama { font-size: 20px; font-weight: 600; overflow-wrap: anywhere; }
+.profil-tombol { background: none; border: 0; padding: 4px 0; font: inherit; font-size: 14px; color: var(--navy); text-decoration: underline; cursor: pointer; min-height: 32px; }
+.profil-bingkai { position: absolute; left: 50%; top: 50%; width: min(78%, 360px); aspect-ratio: 1; transform: translate(-50%, -50%); border-radius: 50%; border: 2px solid rgba(255, 255, 255, 0.85); box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.35); pointer-events: none; }
+.grup-profil { display: flex; align-items: flex-start; gap: 12px; min-width: 0; flex: 1 1 240px; }
+.grup-profil .grup-info { flex: 1 1 0; }
+.kamera-media .profil-pratinjau { position: absolute; left: 50%; top: 50%; width: min(78%, 360px); height: auto; aspect-ratio: 1; transform: translate(-50%, -50%); border-radius: 50%; border: 2px solid rgba(255, 255, 255, 0.85); }

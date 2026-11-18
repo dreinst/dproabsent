@@ -6,6 +6,7 @@ import { fmtWaktu, fmtSingkat } from "@/lib/waktu";
 import { jedaSesi } from "@/lib/aturan";
 import LogoutButton from "@/components/LogoutButton";
 import AbsenPanel from "@/components/AbsenPanel";
+import FotoProfil from "@/components/FotoProfil";
 
 export const dynamic = "force-dynamic";
 
@@ -44,8 +45,8 @@ export default async function CrewHome() {
       </div>
       <div className="judul">
         <h1>Absen saya</h1>
-        <p>Halo, {user.name}</p>
       </div>
+      <FotoProfil id={user.id} nama={user.name} avatar={user.avatar} />
 
       {sessions.length === 0 && (
         <div className="card">

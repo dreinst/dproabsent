@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { fmtSingkat, fmtHari, fmtJam, fmtTanggal } from "@/lib/waktu";
 import { MULAI_DATA_BARU } from "@/lib/aturan";
+import Avatar from "@/components/Avatar";
 import FotoAbsen from "@/components/FotoAbsen";
 import PilihAcara from "@/components/PilihAcara";
 import { KIND, STATUS, nadaStatus } from "@/lib/label";
@@ -206,6 +207,8 @@ export default async function AdminPage({ searchParams }) {
         return (
           <section className="grup" key={g.kunci} aria-label={`Absen ${g.user.name}`}>
             <div className="grup-kop">
+              <div className="grup-profil">
+              <Avatar id={g.user.id} nama={g.user.name} avatar={g.user.avatar} ukuran={48} />
               <div className="grup-info">
                 <div className="grup-nama">{g.user.name}</div>
                 <div className="meta"><b>{g.session.event.name}</b> · {g.session.jobdesc}</div>
@@ -217,6 +220,7 @@ export default async function AdminPage({ searchParams }) {
                   {nTelat > 0 && <span className="badge warn">{nTelat} terlambat</span>}
                   {nLuar > 0 && <span className="badge bad">{nLuar} di luar radius</span>}
                 </div>
+              </div>
               </div>
               <div className="grup-aksi">
                 {idBelum.length > 0 ? <SahkanSemua ids={idBelum} /> : <span className="badge ok">Semua sah</span>}
