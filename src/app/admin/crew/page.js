@@ -3,7 +3,10 @@ import { redirect } from "next/navigation";
 import { getCurrentUser, isAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { simpanCrew, aktifCrew } from "@/app/admin/actions";
-import AdminShell, { Cari, Saring, Panel } from "@/components/AdminShell";
+import { fmtHari } from "@/lib/waktu";
+import { MULAI_DATA_BARU } from "@/lib/aturan";
+import Avatar from "@/components/Avatar";
+import AdminShell, { Cari, Panel } from "@/components/AdminShell";
 
 export const dynamic = "force-dynamic";
 
@@ -76,39 +79,73 @@ export default async function CrewPage({ searchParams }) {
     ? { OR: [{ name: { contains: q, mode: "insensitive" } }, ...(angka ? [{ phone: { contains: angka } }] : [])] }
     : {};
 
-  const [akun, semua, crew, admin, nonaktif] = await Promise.all([
-    prisma.user.findMany({ where: { ...SARING[f], ...cari }, orderBy: { name: "asc" } }),
-    prisma.user.count(),
-    prisma.user.count({ where: SARING.crew }),
-    prisma.user.count({ where: SARING.admin }),
-    prisma.user.count({ where: SARING.nonaktif }),
+  const periode = sp.periode === "lama" ? "lama" : "baru";
+  const tglBatas = fmtHari(MULAI_DATA_BARU);
+  // Data baru: owner dan superadmin selalu, akun yang dibuat sejak tanggal batas, atau yang punya absen sejak itu.
+  const baru = {
+    OR: [
+      { role: { in: ["OWNER", "SUPERADMIN"] } },
+      { createdAt: { gte: MULAI_DATA_BARU } },
+      { absensi: { some: { checkedAt: { gte: MULAI_DATA_BARU } } } },
+    ],
+  };
+  // Kalau kotak cari diisi, pencarian menjangkau semua crew tanpa melihat periode.
+  const lingkup = q ? {} : periode === "lama" ? { NOT: baru } : baru;
+
+  const [akun, semua, crew, admin, nonaktif, nBaru, nLama] = await Promise.all([
+    prisma.user.findMany({ where: { AND: [lingkup, SARING[f] || {}, cari] }, orderBy: { name: "asc" } }),
+    prisma.user.count({ where: lingkup }),
+    prisma.user.count({ where: { AND: [lingkup, SARING.crew] } }),
+    prisma.user.count({ where: { AND: [lingkup, SARING.admin] } }),
+    prisma.user.count({ where: { AND: [lingkup, SARING.nonaktif] } }),
+    prisma.user.count({ where: baru }),
+    prisma.user.count({ where: { NOT: baru } }),
   ]);
+  // Tautan yang mempertahankan parameter lain. Nilai bawaan tidak ditulis.
+  const url = ({ p = periode, st = f, kata = q } = {}) => {
+    const u = new URLSearchParams();
+    if (p === "lama") u.set("periode", "lama");
+    if (st) u.set("f", st);
+    if (kata) u.set("q", kata);
+    const qs = u.toString();
+    return qs ? `/admin/crew?${qs}` : "/admin/crew";
+  };
   const bolehUbah = (a) => a.role !== "OWNER" || user.role === "OWNER";
-  const qs = new URLSearchParams({ ...(f && { f }), ...(q && { q }) }).toString();
-  const balik = qs ? `/admin/crew?${qs}` : "/admin/crew";
+  const balik = url();
   const diubah = sp.ubah ? await prisma.user.findUnique({ where: { id: Number(sp.ubah) || 0 } }) : null;
 
   return (
     <AdminShell
       user={user} tab="/admin/crew" title="Crew" pesan={sp}
-      sub={`${semua} akun. Nomor HP dipakai untuk masuk.`}
+      sub={`${nBaru + nLama} akun. Nomor HP dipakai untuk masuk.`}
       aksi={<>
-        <Cari q={q} f={f} placeholder="Cari nama atau nomor HP" />
+        <Cari q={q} f={f} placeholder="Cari nama atau nomor HP"
+          tambahan={{ periode: periode === "lama" ? "lama" : "" }} />
         <Link href="/admin/crew?tambah=1" className="btn-primary" style={{ width: "auto" }}>Tambah akun</Link>
       </>}
     >
-      <Saring base="/admin/crew" f={f} q={q} pilihan={[
-        ["", `Semua ${semua}`], ["crew", `Crew ${crew}`], ["admin", `Admin ${admin}`], ["nonaktif", `Nonaktif ${nonaktif}`],
-      ]} />
+      <div className="saring-baris">
+        <span className="saring-judul">Periode</span>
+        <div className="saring">
+          <Link href={url({ p: "baru" })} className={periode === "baru" ? "chip on" : "chip"}>Data baru (mulai {tglBatas})<small>{nBaru}</small></Link>
+          <Link href={url({ p: "lama" })} className={periode === "lama" ? "chip on" : "chip"}>Rekap lama<small>{nLama}</small></Link>
+        </div>
+      </div>
+      {q && <div className="meta ket-cari">Hasil pencarian dari semua crew, tanpa melihat periode.</div>}
+      <div className="saring">
+        {[["", `Semua ${semua}`], ["crew", `Crew ${crew}`], ["admin", `Admin ${admin}`], ["nonaktif", `Nonaktif ${nonaktif}`]].map(([nilai, label]) => (
+          <Link key={nilai} href={url({ st: nilai })} className={nilai === f ? "chip on" : "chip"}>{label}</Link>
+        ))}
+      </div>
 
       <div className="tabel">
         <div className="baris kop" style={KOL}>
           <div>Nama</div><div>Nomor HP</div><div>Peran</div><div>Aktif</div><div />
         </div>
-        {akun.length === 0 && <div className="kosong">Tidak ada akun yang cocok.</div>}
+        {akun.length === 0 && <div className="kosong">{!q && periode === "lama" ? `Tidak ada akun lama (sebelum ${tglBatas}).` : "Tidak ada akun yang cocok."}</div>}
         {akun.map((a) => (
           <div className="baris" style={KOL} key={a.id}>
-            <div className="lebar tebal">{a.name}</div>
+            <div className="lebar tebal nama-crew"><Avatar id={a.id} nama={a.name} avatar={a.avatar} ukuran={36} /><span>{a.name}</span></div>
             <div>{a.phone}</div>
             <div>{a.role === "CREW" ? "Crew" : <span className="badge navy">{PERAN[a.role]}</span>}</div>
             <div>
@@ -126,7 +163,7 @@ export default async function CrewPage({ searchParams }) {
           </div>
         ))}
       </div>
-      <div className="meta">Menampilkan {akun.length} dari {semua} akun.</div>
+      <div className="meta">Menampilkan {akun.length} dari {semua} akun{q ? "" : periode === "lama" ? " di rekap lama" : " di data baru"}.</div>
 
       {sp.tambah && <Panel title="Tambah akun" tutup="/admin/crew"><FormCrew admin={user} /></Panel>}
       {diubah && bolehUbah(diubah) && (

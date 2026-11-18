@@ -245,8 +245,7 @@ summary::-webkit-details-marker { display: none; }
 /* Penanda penyegaran otomatis di bawah judul halaman admin */
 .segar-otomatis { display: block; margin-top: 4px; font-size: 12px; color: var(--muted); }
 .saring-judul { font-size: 12px; font-weight: 600; color: var(--muted); min-width: 56px; }
-.chip small { font-size: 11px; opacity: 0.7; margin-left: 4px; }
-.pilih-acara { height: 40px; width: 100%; max-width: 480px; min-width: 240px; border-radius: 999px; border: 0; padding: 0 16px; font-size: 13px; background: #fff; color: var(--text); }
+.chip small { font-size: 11px; opacity: 0.7; margin-left: 4px; }.pilih-acara { height: 40px; width: 100%; max-width: 480px; min-width: 240px; border-radius: 999px; border: 0; padding: 0 16px; font-size: 13px; background: #fff; color: var(--text); }
 .thumb-btn { padding: 0; border: 0; background: none; border-radius: 14px; cursor: zoom-in; display: block; }
 .thumb-btn:focus-visible { outline: 2px solid var(--navy); outline-offset: 2px; }
 .foto-dlg { border: 0; padding: 0; background: transparent; max-width: 100vw; max-height: 100vh; width: 100vw; height: 100vh; }
@@ -292,3 +291,18 @@ summary::-webkit-details-marker { display: none; }
 .grup-profil { display: flex; align-items: flex-start; gap: 12px; min-width: 0; flex: 1 1 240px; }
 .grup-profil .grup-info { flex: 1 1 0; }
 .kamera-media .profil-pratinjau { position: absolute; left: 50%; top: 50%; width: min(78%, 360px); height: auto; aspect-ratio: 1; transform: translate(-50%, -50%); border-radius: 50%; border: 2px solid rgba(255, 255, 255, 0.85); }
+/* Crew dan Acara per periode, tombol WhatsApp */
+.bantuan-wa { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+.tombol-wa {
+  display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 10px 16px;
+  border-radius: 999px; background: #25d366; color: #063d1d; font-weight: 600; font-size: 15px; line-height: 1.2;
+  text-align: center; text-decoration: none;
+}
+.tombol-wa:hover { background: #20bd5a; }
+.tombol-wa svg { flex: none; }
+.butuh-bantuan { padding: 20px 12px 8px; }
+.butuh-bantuan .judul-bantuan { font-size: 14px; font-weight: 600; color: var(--text); text-align: center; }
+.err .bantuan-wa { margin-top: 12px; }
+.nama-crew { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.nama-crew span:last-child { min-width: 0; overflow-wrap: anywhere; }
+.ket-cari { margin: -4px 0 10px; }

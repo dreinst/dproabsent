@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser, isAdmin } from "@/lib/auth";
 import LoginForm from "./LoginForm";
+import BantuanWa from "@/components/BantuanWa";
 
 export const dynamic = "force-dynamic";
 
@@ -18,7 +19,10 @@ export default async function LoginPage() {
         </div>
       </div>
       <LoginForm />
-      <p className="meta lupa">Lupa password? Hubungi admin kantor untuk diganti.</p>
+      <div className="butuh-bantuan">
+        <div className="judul-bantuan">Butuh bantuan?</div>
+        <BantuanWa jenis={["belum", "password", "lain"]} />
+      </div>
     </div>
   );
 }
