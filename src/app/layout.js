@@ -7,7 +7,14 @@ export const metadata = {
   title: "DPro Absen",
   description: "Absensi crew D'Production berbasis lokasi dan foto",
   manifest: "/manifest.webmanifest",
-  icons: { icon: "/icon-192.png", apple: "/icon-192.png" },
+  // Lambang D dari logo ringkas D'Pro: SVG untuk browser modern, ICO untuk yang lama, PNG untuk layar utama iPhone.
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "32x32" },
+      { url: "/icon.svg", type: "image/svg+xml" },
+    ],
+    apple: "/apple-touch-icon.png",
+  },
   appleWebApp: { capable: true, statusBarStyle: "default", title: "DPro Absen" },
 };
 
