@@ -45,6 +45,7 @@ model User {
   absensi      Absensi[]
   verified     Absensi[]  @relation("verifier")
   pushSubs     PushSubscription[]
+  kaptenAcara  KaptenAcara[]
 }
 
 // Satu acara, dengan titik lokasi dan radius absen (meter).
@@ -60,6 +61,7 @@ model Event {
   active    Boolean   @default(true)
   createdAt DateTime  @default(now())
   sessions  Session[]
+  kapten    KaptenAcara[]
 }
 
 // Sesi tugas dalam satu acara (Loading, Gladi, Event, dst).
@@ -96,6 +98,7 @@ model Absensi {
   photoHash   String // sha256 isi foto, untuk menolak foto identik
   activity    String? // keterangan dari crew: sedang mengerjakan apa
   note        String? // catatan otomatis: telat, di luar radius, akurasi rendah, titik cek terlewat
+  otomatis    Boolean     @default(false) // pulang dicatat sistem karena crew tidak absen pulang sampai 1 jam setelah sesi selesai
   verifiedById Int?
   verifiedBy  User?       @relation("verifier", fields: [verifiedById], references: [id])
   verifiedAt  DateTime?
@@ -117,4 +120,24 @@ model PushSubscription {
   createdAt DateTime @default(now())
 
   @@index([userId])
+}
+
+// Kapten acara: crew yang ditunjuk owner atau superadmin untuk mengesahkan absen crew di acara itu.
+// Boleh lebih dari satu kapten per acara, dan bisa diganti kapan saja.
+model KaptenAcara {
+  eventId   Int
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@id([eventId, userId])
+  @@index([userId])
+}
+
+// Pengaturan yang bisa diubah owner atau superadmin, misalnya tarif upah.
+model Pengaturan {
+  kunci     String   @id
+  nilai     String
+  updatedAt DateTime @updatedAt
 }
