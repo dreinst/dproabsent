@@ -9,14 +9,23 @@ export function rapikanNama(nama) {
     .trim();
 }
 
-// Nama crew selalu diawali huruf kapital di setiap kata: "andrew santoso" atau "ANDREW SANTOSO" jadi "Andrew Santoso".
-// Kalau diketik campuran huruf besar dan kecil, hanya huruf pertama tiap kata yang dikapitalkan,
-// supaya singkatan seperti "Aldi (PMI)" tetap utuh. Spasi berlebih dibuang.
+// Nama crew selalu diawali huruf kapital di setiap kata: "andrew santoso", "ANDREW SANTOSO",
+// atau "BUDI santoso" jadi "Andrew Santoso" dan "Budi Santoso". Kata kapital semua di dalam kurung
+// dianggap singkatan dan dibiarkan, misalnya "Aldi (PMI)". Spasi berlebih dibuang.
+const awalKapital = (s) => s.replace(/(^|[^\p{L}\p{N}])(\p{L})/gu, (_, pisah, huruf) => pisah + huruf.toUpperCase());
+
 export function namaKapital(nama) {
   const rapi = String(nama || "").trim().replace(/\s+/g, " ");
-  const seragam = rapi === rapi.toLowerCase() || rapi === rapi.toUpperCase();
-  const dasar = seragam ? rapi.toLowerCase() : rapi;
-  return dasar.replace(/(^|[^\p{L}\p{N}])(\p{L})/gu, (_, pisah, huruf) => pisah + huruf.toUpperCase());
+  if (rapi === rapi.toLowerCase() || rapi === rapi.toUpperCase()) return awalKapital(rapi.toLowerCase());
+  return rapi
+    .split(" ")
+    .map((kata) => {
+      const huruf = kata.replace(/[^\p{L}]/gu, "");
+      const kapitalSemua = huruf !== "" && huruf === huruf.toUpperCase() && huruf !== huruf.toLowerCase();
+      if (kapitalSemua && /^\(.*\)$/.test(kata)) return kata;
+      return awalKapital(kapitalSemua ? kata.toLowerCase() : kata);
+    })
+    .join(" ");
 }
 
 export function namaDepan(nama) {
