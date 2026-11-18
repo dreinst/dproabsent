@@ -50,7 +50,7 @@ export async function POST(req) {
   if (!sah) {
     catatGagal(kunciNomor);
     catatGagal(kunciIp);
-    return NextResponse.json({ error: pakaiNama ? "Nama atau password salah." : "Nomor HP atau password salah." }, { status: 401 });
+    return NextResponse.json({ error: pakaiNama ? "Nama admin atau password salah. Crew masuk pakai nomor HP." : "Nomor HP atau password salah." }, { status: 401 });
   }
 
   hapusCatatan(kunciNomor);

@@ -9,7 +9,6 @@ export default function LoginForm() {
   const [password, setPassword] = useState("");
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
-  const [admin, setAdmin] = useState(false); // owner dan superadmin masuk pakai nama
 
   async function submit(e) {
     e.preventDefault();
@@ -38,16 +37,17 @@ export default function LoginForm() {
   return (
     <form onSubmit={submit}>
       {err && <div className="err" style={{ marginBottom: 10 }}>{err}</div>}
-      <label>{admin ? "Nama admin" : "Nomor HP"}</label>
+      {/* Satu kolom untuk semua akun: crew mengisi nomor HP, owner dan superadmin mengisi nama. Server yang membedakannya. */}
+      <label>Nomor HP atau nama admin</label>
       <input
-        key={admin ? "nama" : "nomor"}
-        type={admin ? "text" : "tel"}
-        inputMode={admin ? "text" : "numeric"}
-        placeholder={admin ? "Contoh: andrew" : "08xxxxxxxxxx"}
+        type="text"
+        placeholder="08xxxxxxxxxx"
         value={phone}
         onChange={(e) => setPhone(e.target.value)}
         autoComplete="username"
         autoCapitalize="none"
+        autoCorrect="off"
+        spellCheck={false}
       />
       <label>Password</label>
       <input
@@ -60,9 +60,6 @@ export default function LoginForm() {
       <div style={{ height: 16 }} />
       <button className="btn-primary" disabled={busy}>
         {busy ? "Memproses..." : "Masuk"}
-      </button>
-      <button type="button" className="btn-ghost btn-kecil" style={{ marginTop: 10 }} onClick={() => { setAdmin(!admin); setPhone(""); setErr(""); }}>
-        {admin ? "Masuk sebagai crew" : "Masuk sebagai owner atau superadmin"}
       </button>
     </form>
   );
