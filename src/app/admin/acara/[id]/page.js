@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { getCurrentUser, isAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { fmtWaktu, keInput } from "@/lib/waktu";
+import { JEDA_MENIT, JEDA_MIN, JEDA_MAKS, jedaSesi } from "@/lib/aturan";
 import { simpanSesi, hapusSesi } from "@/app/admin/actions";
 import AdminShell from "@/components/AdminShell";
 import FormAcara from "@/components/FormAcara";
@@ -28,8 +29,14 @@ function FormSesi({ eventId, sesi, mulai }) {
       </div>
       <div className="dua">
         <div>
-          <label>Titik cek</label>
-          <div className="meta" style={{ padding: "12px 0" }}>Otomatis tiap 60 menit, tidak bisa diubah.</div>
+          <label>Titik cek tiap (menit)</label>
+          <input
+            type="number" name="checkpointMinutes" min={JEDA_MIN} max={JEDA_MAKS} step="1"
+            defaultValue={sesi ? jedaSesi(sesi) : JEDA_MENIT}
+          />
+          <div className="meta" style={{ marginTop: 4 }}>
+            Bawaan 60 menit. Kalau lebih panjang dari durasi sesi, crew cukup absen masuk dan pulang.
+          </div>
         </div>
         <div>
           <label>Batas telat (menit)</label>
@@ -83,8 +90,9 @@ export default async function AcaraDetailPage({ params, searchParams }) {
                 <div className="grow">
                   <b>{s.jobdesc}</b>
                   <span className="meta">{fmtWaktu(s.startAt)} sampai {fmtWaktu(s.endAt)}</span>
+                  <br />
+                  <span className="meta">Titik cek tiap {jedaSesi(s)} menit</span>
                 </div>
-                <span className="badge navy">Titik cek 60 menit</span>
                 <span className="badge muted" style={{ background: "#fff" }}>{s._count.absensi} absen</span>
               </summary>
               <FormSesi eventId={acara.id} sesi={s} />

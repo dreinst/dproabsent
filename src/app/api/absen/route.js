@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { distanceMeters } from "@/lib/geo";
 import { simpanFoto, hapusFoto, FotoError, MAKS_BYTE } from "@/lib/foto";
-import { JEDA_MENIT, BATAS_MENIT, TOLERANSI_MS, PULANG_TELAT_MENIT } from "@/lib/aturan";
+import { jedaSesi, BATAS_MENIT, TOLERANSI_MS, PULANG_TELAT_MENIT } from "@/lib/aturan";
 
 const KINDS = ["MASUK", "CHECKPOINT", "PULANG"];
 
@@ -40,7 +40,7 @@ export async function POST(req) {
 
   const now = new Date();
 
-  // Titik cek selalu 60 menit sejak absen terakhir (masuk atau titik cek sebelumnya).
+  // Titik cek mengikuti jarak sesi (jedaSesi), dihitung sejak absen terakhir (masuk atau titik cek sebelumnya).
   let terakhir = null;
   if (kind === "CHECKPOINT") {
     terakhir = await prisma.absensi.findFirst({
@@ -50,7 +50,7 @@ export async function POST(req) {
     if (!terakhir) {
       return NextResponse.json({ error: "Absen masuk dulu sebelum titik cek." }, { status: 400 });
     }
-    const jatuhTempo = terakhir.checkedAt.getTime() + JEDA_MENIT * 60000;
+    const jatuhTempo = terakhir.checkedAt.getTime() + jedaSesi(session) * 60000;
     if (now.getTime() < jatuhTempo - TOLERANSI_MS) {
       return NextResponse.json({ error: "Belum waktunya titik cek berikutnya." }, { status: 409 });
     }
@@ -93,7 +93,7 @@ export async function POST(req) {
   }
 
   if (kind === "CHECKPOINT") {
-    const batas = terakhir.checkedAt.getTime() + (JEDA_MENIT + BATAS_MENIT) * 60000;
+    const batas = terakhir.checkedAt.getTime() + (jedaSesi(session) + BATAS_MENIT) * 60000;
     if (now.getTime() > batas) {
       status = "TERLAMBAT";
       const telat = Math.round((now.getTime() - batas) / 60000) + BATAS_MENIT;
@@ -114,7 +114,7 @@ export async function POST(req) {
       // Titik cek hanya dihitung sampai jam selesai shift, supaya pulang yang menyusul tidak menambah titik cek terlewat.
       const akhir = Math.min(now.getTime(), session.endAt.getTime());
       const durationMin = Math.max(0, akhir - masuk.checkedAt.getTime()) / 60000;
-      const expected = Math.floor(durationMin / JEDA_MENIT);
+      const expected = Math.floor(durationMin / jedaSesi(session));
       const actual = await prisma.absensi.count({
         where: { sessionId: session.id, userId: user.id, kind: "CHECKPOINT" },
       });

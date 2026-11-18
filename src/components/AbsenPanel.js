@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { KIND, STATUS, nadaStatus } from "@/lib/label";
-import { JEDA_MENIT, BATAS_MENIT } from "@/lib/aturan";
+import { BATAS_MENIT } from "@/lib/aturan";
 
 const LABEL = { MASUK: "Absen masuk", CHECKPOINT: "Absen titik cek", PULANG: "Absen pulang" };
 
@@ -32,9 +32,9 @@ export default function AbsenPanel({ session, existing, lastAt }) {
   const hasPulang = existing.some((e) => e.kind === "PULANG");
   const berjalan = hasMasuk && !hasPulang;
 
-  // Hitung mundur ke titik cek berikutnya: 60 menit sejak absen terakhir, batas 5 menit.
+  // Hitung mundur ke titik cek berikutnya: jarak sesi (session.jedaMenit) sejak absen terakhir, lalu batas BATAS_MENIT.
   // Begitu jam selesai shift tiba, tombol berganti jadi absen pulang.
-  const jatuhTempo = lastAt ? lastAt + JEDA_MENIT * 60000 : null;
+  const jatuhTempo = lastAt ? lastAt + session.jedaMenit * 60000 : null;
   const batasAkhir = jatuhTempo ? jatuhTempo + BATAS_MENIT * 60000 : null;
   const shiftSelesai = berjalan && now >= session.endAt;
   let fase = "tunggu";
