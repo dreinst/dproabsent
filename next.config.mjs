@@ -9,6 +9,8 @@ const headerAman = [
 
 const nextConfig = {
   poweredByHeader: false,
+  // Klien Redis dimuat langsung dari node_modules saat jalan, tidak dibundel webpack.
+  serverExternalPackages: ["redis"],
   async headers() {
     return [{ source: "/:path*", headers: headerAman }];
   },

@@ -42,3 +42,6 @@ Catatan: kamera dan GPS hanya berjalan lewat HTTPS atau localhost.
 - Pasang volume persisten di `/data/fotos`. Isinya foto absen, dan ikut dicadangkan ke NAS tiap malam.
 - Jangan jalankan `npm run seed` di produksi, karena membuat akun demo dengan password yang tertulis di atas.
 - Data lama yang fotonya masih berupa data URL di database tetap terbaca lewat `/api/foto/[id]`.
+- Kontainer menjalankan `node server.mjs`: beberapa worker Next di port yang sama (node:cluster, round-robin). Jumlah dan jatahnya diatur `WEB_CONCURRENCY` (bawaan 3), `WORKER_HEAP_MB` (384), dan `UV_THREADPOOL_SIZE` (2). Alasannya ada di `server.mjs`. Batas memori kontainer 2 GB.
+- Opsional `REDIS_URL` (misalnya `redis://redis:6379`): pembatas login dan cache daftar sesi aktif berlaku untuk semua worker. Tanpa Redis, atau saat Redis bermasalah, keduanya jalan di memori tiap worker. Kunci Redis diberi awalan `dproabsent:<nama_db>:`, bisa diganti lewat `REDIS_PREFIX`.
+- Uji beban: lihat `scripts/uji-beban/README.md`.

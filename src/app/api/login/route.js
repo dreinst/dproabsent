@@ -22,7 +22,7 @@ export async function POST(req) {
   const ip = (req.headers.get("x-forwarded-for") || "").split(",")[0].trim() || "tanpa-ip";
   const kunciNomor = `${pakaiNama ? "nama" : "nomor"}:${nomor.slice(0, 40)}`;
   const kunciIp = `ip:${ip}`;
-  const tunggu = Math.max(sisaTunggu(kunciNomor, MAKS_PER_NOMOR), sisaTunggu(kunciIp, MAKS_PER_IP));
+  const tunggu = Math.max(...(await Promise.all([sisaTunggu(kunciNomor, MAKS_PER_NOMOR), sisaTunggu(kunciIp, MAKS_PER_IP)])));
   if (tunggu > 0) {
     return NextResponse.json(
       { error: `Terlalu banyak percobaan. Coba lagi dalam ${Math.ceil(tunggu / 60)} menit.` },
@@ -48,12 +48,11 @@ export async function POST(req) {
   // Akun tidak ada atau nonaktif tetap diverifikasi ke hash palsu supaya waktu jawabnya sama.
   const sah = await verifyPasswordAsync(password, user?.active ? user.passwordHash : undefined);
   if (!sah) {
-    catatGagal(kunciNomor);
-    catatGagal(kunciIp);
+    await Promise.all([catatGagal(kunciNomor), catatGagal(kunciIp)]);
     return NextResponse.json({ error: pakaiNama ? "Nama admin atau password salah. Crew masuk pakai nomor HP." : "Nomor HP atau password salah." }, { status: 401 });
   }
 
-  hapusCatatan(kunciNomor);
+  await hapusCatatan(kunciNomor);
   await setSession(user.id);
   return NextResponse.json({ ok: true, role: user.role });
 }
