@@ -38,6 +38,7 @@ model User {
   passwordHash String
   role         Role       @default(CREW)
   bankAccount  String? // hanya terlihat owner & superadmin
+  avatar       String? // foto profil: path relatif di FOTO_DIR (profil/<uuid>.webp), dari WhatsApp atau dipotret crew
   active       Boolean    @default(true)
   legacyId     Int?       @unique // id pegawai di dpro.sql
   createdAt    DateTime   @default(now())

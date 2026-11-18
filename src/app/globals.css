@@ -240,6 +240,8 @@ summary::-webkit-details-marker { display: none; }
 /* Verifikasi: baris saringan bertingkat dan foto absen yang bisa diperbesar */
 .saring-baris { display: flex; align-items: center; gap: 8px 12px; flex-wrap: wrap; margin-bottom: 12px; }
 .saring-baris .saring { margin-bottom: 0; }
+/* Foto profil bulat atau inisial nama (komponen Avatar) */
+.avatar { display: inline-flex; align-items: center; justify-content: center; flex: none; border-radius: 50%; object-fit: cover; background: #e8ecf3; color: var(--navy); font-weight: 600; overflow: hidden; }
 /* Penanda penyegaran otomatis di bawah judul halaman admin */
 .segar-otomatis { display: block; margin-top: 4px; font-size: 12px; color: var(--muted); }
 .saring-judul { font-size: 12px; font-weight: 600; color: var(--muted); min-width: 56px; }
