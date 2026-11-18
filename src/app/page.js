@@ -7,6 +7,7 @@ import { jedaSesi } from "@/lib/aturan";
 import LogoutButton from "@/components/LogoutButton";
 import AbsenPanel from "@/components/AbsenPanel";
 import FotoProfil from "@/components/FotoProfil";
+import BantuanWa from "@/components/BantuanWa";
 
 export const dynamic = "force-dynamic";
 
@@ -95,6 +96,11 @@ export default async function CrewHome() {
       })}
 
       <Link href="/riwayat" className="btn-ghost">Lihat riwayat absen saya</Link>
+      {/* Kendala apa pun saat absen langsung ke WhatsApp Andrew. */}
+      <div className="butuh-bantuan">
+        <div className="judul-bantuan">Ada kendala saat absen?</div>
+        <BantuanWa jenis={["lain"]} label="Chat Andrew" />
+      </div>
     </div>
   );
 }
