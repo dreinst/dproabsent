@@ -27,14 +27,14 @@ function FormCrew({ akun, admin }) {
       {akun && <input type="hidden" name="id" value={akun.id} />}
       <label>Nama</label>
       <input type="text" name="name" defaultValue={akun?.name} required />
-      <label>Nomor HP (dipakai untuk masuk)</label>
+      <label>Nomor HP (digunakan untuk masuk)</label>
       <input type="tel" name="phone" inputMode="numeric" placeholder="08xxxxxxxxxx" defaultValue={akun?.phone} required />
       <label>{akun ? "Password baru" : "Password"}</label>
       <input
         type="text" name="password" autoComplete="off" minLength={6} required={!akun}
-        placeholder={akun ? "Kosongkan kalau tidak diganti" : "Minimal 6 karakter"}
+        placeholder={akun ? "Kosongkan jika tidak ingin mengganti" : "Minimal 6 karakter"}
       />
-      <label>Rekening bank (boleh kosong)</label>
+      <label>Rekening bank (opsional)</label>
       <input type="text" name="bankAccount" defaultValue={akun?.bankAccount || ""} />
       {diri ? (
         <>
@@ -53,7 +53,7 @@ function FormCrew({ akun, admin }) {
             ))}
           </div>
           <label className="pilihan">
-            <div className="grow"><b>Akun aktif</b><span>Bisa masuk dan absen.</span></div>
+            <div className="grow"><b>Akun aktif</b><span>Dapat masuk dan melakukan absen.</span></div>
             <input type="checkbox" className="sakelar" name="active" defaultChecked={akun ? akun.active : true} />
           </label>
         </>
@@ -117,7 +117,7 @@ export default async function CrewPage({ searchParams }) {
   return (
     <AdminShell
       user={user} tab="/admin/crew" title="Crew" pesan={sp}
-      sub={`${nBaru + nLama} akun. Nomor HP dipakai untuk masuk.`}
+      sub={`${nBaru + nLama} akun. Nomor HP digunakan untuk masuk.`}
       aksi={<>
         <Cari q={q} f={f} placeholder="Cari nama atau nomor HP"
           tambahan={{ periode: periode === "lama" ? "lama" : "" }} />
@@ -131,7 +131,7 @@ export default async function CrewPage({ searchParams }) {
           <Link href={url({ p: "lama" })} className={periode === "lama" ? "chip on" : "chip"}>Rekap lama<small>{nLama}</small></Link>
         </div>
       </div>
-      {q && <div className="meta ket-cari">Hasil pencarian dari semua crew, tanpa melihat periode.</div>}
+      {q && <div className="meta ket-cari">Hasil pencarian mencakup crew dari semua periode.</div>}
       <div className="saring">
         {[["", `Semua ${semua}`], ["crew", `Crew ${crew}`], ["admin", `Admin ${admin}`], ["nonaktif", `Nonaktif ${nonaktif}`]].map(([nilai, label]) => (
           <Link key={nilai} href={url({ st: nilai })} className={nilai === f ? "chip on" : "chip"}>{label}</Link>
@@ -145,10 +145,10 @@ export default async function CrewPage({ searchParams }) {
         {akun.length === 0 && <div className="kosong">{!q && periode === "lama" ? `Tidak ada akun lama (sebelum ${tglBatas}).` : "Tidak ada akun yang cocok."}</div>}
         {akun.map((a) => (
           <div className="baris" style={KOL} key={a.id}>
-            <div className="lebar tebal nama-crew"><Avatar id={a.id} nama={a.name} avatar={a.avatar} ukuran={36} /><span>{a.name}</span></div>
+            <div className="lebar tebal nama-crew kol-utama"><Avatar id={a.id} nama={a.name} avatar={a.avatar} ukuran={36} /><span>{a.name}</span></div>
             <div>{a.phone}</div>
             <div>{a.role === "CREW" ? "Crew" : <span className="badge navy">{PERAN[a.role]}</span>}</div>
-            <div>
+            <div className="kol-sakelar">
               {bolehUbah(a) && a.id !== user.id ? (
                 <form action={aktifCrew}>
                   <input type="hidden" name="id" value={a.id} />
@@ -159,7 +159,7 @@ export default async function CrewPage({ searchParams }) {
                 <span className="badge ok">Aktif</span>
               )}
             </div>
-            <div>{bolehUbah(a) && <Link href={`/admin/crew?ubah=${a.id}`} className="tautan">Ubah</Link>}</div>
+            <div className="kol-aksi">{bolehUbah(a) && <Link href={`/admin/crew?ubah=${a.id}`} className="tautan">Ubah</Link>}</div>
           </div>
         ))}
       </div>

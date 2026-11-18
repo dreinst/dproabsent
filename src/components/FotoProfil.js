@@ -39,7 +39,7 @@ export default function FotoProfil({ id, nama, avatar }) {
         }
       } catch {
         if (!cancelled) {
-          setErr("Tidak bisa membuka kamera. Izinkan akses kamera di browser.");
+          setErr("Kamera tidak dapat dibuka. Mohon izinkan akses kamera di browser.");
           setBuka(false);
         }
       }
@@ -87,11 +87,11 @@ export default function FotoProfil({ id, nama, avatar }) {
         body: JSON.stringify({ photo: shot }),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) { setErr(data.error || "Gagal menyimpan foto profil."); return; }
+      if (!res.ok) { setErr(data.error || "Foto profil gagal disimpan. Silakan coba lagi."); return; }
       setBuka(false); setShot(null);
       router.refresh();
     } catch {
-      setErr("Jaringan bermasalah, coba lagi.");
+      setErr("Koneksi internet bermasalah. Silakan coba lagi.");
     } finally {
       setBusy(false);
     }
@@ -100,7 +100,7 @@ export default function FotoProfil({ id, nama, avatar }) {
   return (
     <>
       <div className="profil-baris">
-        <Avatar id={id} nama={nama} avatar={avatar} ukuran={56} />
+        <Avatar id={id} nama={nama} avatar={avatar} ukuran={64} />
         <div className="profil-teks">
           <div className="profil-nama">{nama}</div>
           <button type="button" className="profil-tombol" onClick={mulai}>
@@ -125,22 +125,22 @@ export default function FotoProfil({ id, nama, avatar }) {
             )}
             <div className="kamera-atas">
               <button className="kaca-tombol" onClick={tutup} disabled={busy}>Batal</button>
-              <span className="kaca">Foto profil</span>
-              {!shot ? (
+              {!shot && (
                 <button
                   className="kaca-tombol"
                   onClick={() => setFacing((f) => (f === "user" ? "environment" : "user"))}
                 >
-                  Balik
+                  Ganti kamera
                 </button>
-              ) : <span style={{ width: 64 }} />}
+              )}
             </div>
+            <span className="kaca kamera-label">Foto profil</span>
           </div>
 
           {!shot ? (
             <div className="kamera-bawah">
               <button className="shutter" onClick={capture} aria-label="Ambil foto" />
-              <p>Wajah di tengah bingkai, menghadap kamera.</p>
+              <p>Posisikan wajah di tengah bingkai dan menghadap kamera.</p>
             </div>
           ) : (
             <div className="kamera-bawah form">

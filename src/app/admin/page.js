@@ -2,15 +2,12 @@ import { Prisma } from "@prisma/client";
 import { redirect } from "next/navigation";
 import { getCurrentUser, isAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import Link from "next/link";
-import { fmtSingkat, fmtHari, fmtJam, fmtTanggal } from "@/lib/waktu";
+import { fmtSingkat, fmtHari } from "@/lib/waktu";
 import { MULAI_DATA_BARU } from "@/lib/aturan";
-import Avatar from "@/components/Avatar";
-import FotoAbsen from "@/components/FotoAbsen";
 import PilihAcara from "@/components/PilihAcara";
-import { KIND, STATUS, nadaStatus } from "@/lib/label";
 import AdminShell, { Cari } from "@/components/AdminShell";
-import AdminActions, { SahkanSemua } from "@/components/AdminActions";
+import KartuAbsen from "@/components/KartuAbsen";
+import { BarisSaring, Chip } from "@/components/Saringan";
 import { catatPulang } from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -111,35 +108,30 @@ export default async function AdminPage({ searchParams }) {
     const qs = u.toString();
     return qs ? `/admin?${qs}` : "/admin";
   };
-  const chip = (href, aktif, label, n) => (
-    <Link key={href} href={href} className={aktif ? "chip on" : "chip"}>{label}{n !== undefined && <small>{n}</small>}</Link>
-  );
   const totalPeriode = daftarAcara.reduce((t, a) => t + a.n, 0);
   const kosongPeriode = periode === "lama" ? `Tidak ada absen sebelum ${tglBatas}.` : `Belum ada absen sejak ${tglBatas}.`;
 
   return (
     <AdminShell
       user={user} tab="/admin" title="Verifikasi absen"
-      sub="Sahkan absen yang benar, tolak yang tidak sesuai."
+      sub="Sahkan absen yang sesuai dan tolak absen yang tidak sesuai."
       pesan={sp}
       aksi={<Cari q={q} f={f === "belum" ? "" : f} placeholder="Cari nama crew atau acara"
         tambahan={{ periode: periode === "lama" ? "lama" : "", acara: acaraId ? String(acaraId) : "" }} />}
     >
-      <div className="saring-baris">
-        <span className="saring-judul">Periode</span>
+      <BarisSaring judul="Periode">
         <div className="saring">
-          {chip(url({ p: "baru", a: 0 }), periode === "baru", `Data baru (mulai ${tglBatas})`)}
-          {chip(url({ p: "lama", a: 0 }), periode === "lama", `Rekap lama (sebelum ${tglBatas})`)}
+          <Chip href={url({ p: "baru", a: 0 })} aktif={periode === "baru"} label={`Data baru (mulai ${tglBatas})`} />
+          <Chip href={url({ p: "lama", a: 0 })} aktif={periode === "lama"} label={`Rekap lama (sebelum ${tglBatas})`} />
         </div>
-      </div>
+      </BarisSaring>
 
       {totalPeriode > 0 && (
-        <div className="saring-baris">
-          <span className="saring-judul">Acara</span>
+        <BarisSaring judul="Acara">
           {daftarAcara.length <= MAKS_CHIP_ACARA ? (
             <div className="saring">
-              {chip(url({ a: 0 }), !acaraId, "Semua acara", totalPeriode)}
-              {daftarAcara.map((a) => chip(url({ a: a.id }), a.id === acaraId, a.name, a.n))}
+              <Chip href={url({ a: 0 })} aktif={!acaraId} label="Semua acara" n={totalPeriode} />
+              {daftarAcara.map((a) => <Chip key={a.id} href={url({ a: a.id })} aktif={a.id === acaraId} label={a.name} n={a.n} />)}
             </div>
           ) : (
             <PilihAcara
@@ -150,19 +142,18 @@ export default async function AdminPage({ searchParams }) {
               ]}
             />
           )}
-        </div>
+        </BarisSaring>
       )}
 
-      <div className="saring-baris">
-        <span className="saring-judul">Status</span>
+      <BarisSaring judul="Status">
         <div className="saring">
           {[
             ["belum", "Belum disahkan", belum], ["telat", "Terlambat", telat],
             ["pulang", "Belum pulang", idPulang.length], ["luar", "Di luar radius", luar],
             ["semua", "Semua", semua],
-          ].map(([nilai, label, n]) => chip(url({ st: nilai }), nilai === f, label, n))}
+          ].map(([nilai, label, n]) => <Chip key={nilai} href={url({ st: nilai })} aktif={nilai === f} label={label} n={n} />)}
         </div>
-      </div>
+      </BarisSaring>
 
       {f === "pulang" ? (
         <>
@@ -170,17 +161,17 @@ export default async function AdminPage({ searchParams }) {
             <div className="baris kop" style={KOL_PULANG}>
               <div>Crew</div><div>Acara dan sesi</div><div>Masuk</div><div>Shift selesai</div><div>Aksi</div>
             </div>
-            {rows.length === 0 && <div className="kosong">Tidak ada crew yang lupa absen pulang.</div>}
+            {rows.length === 0 && <div className="kosong">Semua crew sudah absen pulang.</div>}
             {rows.map((r) => (
               <div className="baris" style={KOL_PULANG} key={r.id}>
-                <div className="tebal">{r.user.name}</div>
+                <div className="tebal kol-utama">{r.user.name}</div>
                 <div className="lebar">
                   <div className="tebal">{r.session.event.name}</div>
                   <div className="meta">{r.session.jobdesc}</div>
                 </div>
                 <div>{fmtSingkat(r.checkedAt)}</div>
                 <div>{fmtSingkat(r.session.endAt)}</div>
-                <div>
+                <div className="kol-aksi">
                   <form action={catatPulang}>
                     <input type="hidden" name="id" value={r.id} />
                     <button className="btn-primary btn-kecil">Catat pulang</button>
@@ -189,72 +180,13 @@ export default async function AdminPage({ searchParams }) {
               </div>
             ))}
           </div>
-          <div className="meta">Crew masih bisa absen pulang sendiri selama acaranya aktif. Kalau dicatat dari sini, jam pulang memakai jam selesai shift dan tanpa foto.</div>
+          <div className="meta">Crew masih dapat absen pulang sendiri selama acara aktif. Jika dicatat dari sini, jam pulang mengikuti jam selesai shift dan tanpa foto.</div>
         </>
       ) : (
       <>
 
-      {rows.length === 0 && <div className="kosong">{totalPeriode === 0 ? kosongPeriode : f === "belum" && !q ? "Semua absen di sini sudah disahkan." : "Tidak ada absen yang cocok."}</div>}
-      {kelompok.map((g) => {
-        const awal = g.items[0].checkedAt;
-        const akhir = g.items[g.items.length - 1].checkedAt;
-        const idBelum = g.items.filter((r) => !r.verifiedAt).map((r) => r.id);
-        const nTelat = g.items.filter((r) => r.status === "TERLAMBAT").length;
-        const nLuar = g.items.filter((r) => !r.insideRadius).length;
-        const rentang = g.items.length === 1 ? fmtSingkat(awal)
-          : fmtHari(awal) === fmtHari(akhir) ? `${fmtSingkat(awal)} sampai ${fmtJam(akhir)}`
-          : `${fmtSingkat(awal)} sampai ${fmtSingkat(akhir)}`;
-        return (
-          <section className="grup" key={g.kunci} aria-label={`Absen ${g.user.name}`}>
-            <div className="grup-kop">
-              <div className="grup-profil">
-              <Avatar id={g.user.id} nama={g.user.name} avatar={g.user.avatar} ukuran={48} />
-              <div className="grup-info">
-                <div className="grup-nama">{g.user.name}</div>
-                <div className="meta"><b>{g.session.event.name}</b> · {g.session.jobdesc}</div>
-                <div className="meta">{rentang}</div>
-                <div className="lencana">
-                  <span className="badge muted">
-                    {g.items.length} absen{idBelum.length > 0 ? `, ${idBelum.length} belum disahkan` : ""}
-                  </span>
-                  {nTelat > 0 && <span className="badge warn">{nTelat} terlambat</span>}
-                  {nLuar > 0 && <span className="badge bad">{nLuar} di luar radius</span>}
-                </div>
-              </div>
-              </div>
-              <div className="grup-aksi">
-                {idBelum.length > 0 ? <SahkanSemua ids={idBelum} /> : <span className="badge ok">Semua sah</span>}
-              </div>
-            </div>
-            <div className="grup-foto">
-              {g.items.map((r) => (
-                <div className="grup-item" key={r.id}>
-                  <FotoAbsen
-                    id={r.id} nama={g.user.name} jam={fmtJam(r.checkedAt)}
-                    ket={[
-                      `${g.session.event.name} · ${g.session.jobdesc}`,
-                      `${KIND[r.kind]} · ${fmtTanggal(r.checkedAt)}`,
-                      `${STATUS[r.status]} · ${r.distanceM} m dari titik acara`,
-                      ...(r.activity ? [`Kegiatan: ${r.activity}`] : []),
-                      ...(r.note ? [`Catatan: ${r.note}`] : []),
-                      r.verifiedAt ? "Sudah disahkan" : "Belum disahkan",
-                    ]}
-                  >
-                    <AdminActions id={r.id} verified={!!r.verifiedAt} tutupDialog />
-                  </FotoAbsen>
-                  <div className="grup-jenis">{KIND[r.kind]}</div>
-                  <div className="lencana">
-                    {r.status !== "HADIR" && <span className={`badge ${nadaStatus(r.status)}`}>{STATUS[r.status]}</span>}
-                    <span className={`badge ${r.insideRadius ? "muted" : "bad"}`}>{r.distanceM} m</span>
-                    {r.verifiedAt ? <span className="badge ok">Sah</span> : <span className="badge warn">Belum</span>}
-                  </div>
-                  {r.activity && <div className="meta">{r.activity}</div>}
-                </div>
-              ))}
-            </div>
-          </section>
-        );
-      })}
+      {rows.length === 0 && <div className="kosong">{totalPeriode === 0 ? kosongPeriode : f === "belum" && !q ? "Semua absen di sini sudah disahkan." : "Tidak ada absen yang sesuai."}</div>}
+      {kelompok.map((g) => <KartuAbsen key={g.kunci} user={g.user} session={g.session} items={g.items} />)}
       <div className="meta">Menampilkan {rows.length} absen dari {jumlahCrew} crew{rows.length >= MAKS_ABSEN ? ` (batas ${MAKS_ABSEN} absen terbaru)` : ""}.</div>
       </>
       )}

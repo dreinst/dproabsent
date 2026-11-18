@@ -63,7 +63,7 @@ export default async function AcaraPage({ searchParams }) {
   return (
     <AdminShell
       user={user} tab="/admin/acara" title="Acara" pesan={sp}
-      sub="Sesi dari acara aktif muncul di halaman absen crew."
+      sub="Sesi dari acara yang aktif tampil di halaman absen crew."
       aksi={<>
         <Cari q={q} f={f === "aktif" ? "" : f} placeholder="Cari nama acara atau klien"
           tambahan={{ periode: periode === "lama" ? "lama" : "" }} />
@@ -77,7 +77,7 @@ export default async function AcaraPage({ searchParams }) {
           <Link href={url({ p: "lama" })} className={periode === "lama" ? "chip on" : "chip"}>Rekap lama<small>{nLama}</small></Link>
         </div>
       </div>
-      {q && <div className="meta ket-cari">Hasil pencarian dari semua acara, tanpa melihat periode.</div>}
+      {q && <div className="meta ket-cari">Hasil pencarian mencakup acara dari semua periode.</div>}
       <div className="saring">
         {[["aktif", `Aktif ${aktif}`], ["nonaktif", `Nonaktif ${semua - aktif}`], ["semua", `Semua ${semua}`]].map(([nilai, label]) => (
           <Link key={nilai} href={url({ st: nilai })} className={nilai === f ? "chip on" : "chip"}>{label}</Link>
@@ -91,19 +91,19 @@ export default async function AcaraPage({ searchParams }) {
         {acara.length === 0 && <div className="kosong">{!q && periode === "lama" ? `Tidak ada acara lama (sebelum ${tglBatas}).` : "Tidak ada acara yang cocok."}</div>}
         {acara.map((e) => (
           <div className="baris" style={KOL} key={e.id}>
-            <div className="lebar tebal">{e.name}</div>
+            <div className="lebar tebal kol-utama">{e.name}</div>
             <div>{e.client}</div>
             <div>{fmtWaktu(e.startAt)}</div>
             <div>{e._count.sessions}<span className="meta"> sesi</span></div>
             <div>{e.radiusM} m</div>
-            <div>
+            <div className="kol-sakelar">
               <form action={aktifAcara}>
                 <input type="hidden" name="id" value={e.id} />
                 <input type="hidden" name="balik" value={balik} />
                 <button className={e.active ? "sakelar on" : "sakelar"} aria-label={`${e.active ? "Nonaktifkan" : "Aktifkan"} ${e.name}`} />
               </form>
             </div>
-            <div><Link href={`/admin/acara/${e.id}`} className="tautan">Kelola</Link></div>
+            <div className="kol-aksi"><Link href={`/admin/acara/${e.id}`} className="tautan">Kelola</Link></div>
           </div>
         ))}
       </div>

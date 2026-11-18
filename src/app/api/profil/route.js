@@ -7,7 +7,7 @@ import { simpanProfil, hapusProfil } from "@/lib/profil";
 // User yang sedang masuk (crew atau admin) mengganti foto profilnya sendiri.
 export async function POST(req) {
   const user = await getCurrentUser();
-  if (!user) return NextResponse.json({ error: "Belum masuk." }, { status: 401 });
+  if (!user) return NextResponse.json({ error: "Sesi masuk Anda sudah berakhir. Silakan masuk kembali." }, { status: 401 });
 
   const panjang = Number(req.headers.get("content-length") || 0);
   if (panjang > MAKS_BYTE * 1.5) {

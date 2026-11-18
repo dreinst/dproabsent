@@ -10,7 +10,7 @@ const KINDS = ["MASUK", "CHECKPOINT", "PULANG"];
 
 export async function POST(req) {
   const user = await getCurrentUser();
-  if (!user) return NextResponse.json({ error: "Belum masuk." }, { status: 401 });
+  if (!user) return NextResponse.json({ error: "Sesi masuk Anda sudah berakhir. Silakan masuk kembali." }, { status: 401 });
 
   // Tolak badan permintaan yang jelas terlalu besar sebelum dibaca ke memori.
   const panjang = Number(req.headers.get("content-length") || 0);
@@ -24,7 +24,7 @@ export async function POST(req) {
     return NextResponse.json({ error: "Data absen tidak lengkap." }, { status: 400 });
   }
   if (typeof lat !== "number" || typeof lng !== "number") {
-    return NextResponse.json({ error: "Lokasi tidak terbaca. Izinkan akses lokasi lalu coba lagi." }, { status: 400 });
+    return NextResponse.json({ error: "Lokasi tidak terbaca. Mohon izinkan akses lokasi, lalu coba lagi." }, { status: 400 });
   }
   if (typeof photo !== "string" || !photo.startsWith("data:image/")) {
     return NextResponse.json({ error: "Foto wajib diambil dari kamera." }, { status: 400 });
@@ -48,17 +48,17 @@ export async function POST(req) {
       orderBy: { checkedAt: "desc" },
     });
     if (!terakhir) {
-      return NextResponse.json({ error: "Absen masuk dulu sebelum titik cek." }, { status: 400 });
+      return NextResponse.json({ error: "Silakan absen masuk terlebih dahulu sebelum absen progres." }, { status: 400 });
     }
     const jatuhTempo = terakhir.checkedAt.getTime() + jedaSesi(session) * 60000;
     if (now.getTime() < jatuhTempo - TOLERANSI_MS) {
-      return NextResponse.json({ error: "Belum waktunya titik cek berikutnya." }, { status: 409 });
+      return NextResponse.json({ error: "Belum waktunya absen progres berikutnya." }, { status: 409 });
     }
   }
 
   // Absen pulang hanya dibuka setelah jam selesai shift sesi.
   if (kind === "PULANG" && now.getTime() < session.endAt.getTime() - TOLERANSI_MS) {
-    return NextResponse.json({ error: "Absen pulang baru dibuka saat shift selesai." }, { status: 409 });
+    return NextResponse.json({ error: "Absen pulang baru dapat dilakukan setelah shift selesai." }, { status: 409 });
   }
 
   const photoHash = createHash("sha256").update(photo).digest("hex");
@@ -68,7 +68,7 @@ export async function POST(req) {
   });
   if (dup) {
     return NextResponse.json(
-      { error: "Foto ini sudah dipakai untuk absen di sesi ini. Ambil foto baru langsung dari kamera." },
+      { error: "Foto ini sudah digunakan untuk absen di sesi ini. Silakan ambil foto baru langsung dari kamera." },
       { status: 409 }
     );
   }
@@ -79,7 +79,7 @@ export async function POST(req) {
 
   const acc = Number.isFinite(accuracyM) ? Math.round(accuracyM) : null;
   const notes = [];
-  if (!insideRadius) notes.push(`Di luar radius (${distanceM} m dari titik, batas ${ev.radiusM} m)`);
+  if (!insideRadius) notes.push(`Di luar radius (${distanceM} m dari titik acara, batas ${ev.radiusM} m)`);
   if (acc && acc > 100) notes.push(`Akurasi GPS rendah (${acc} m), lokasi kurang pasti`);
 
   let status = "HADIR";
@@ -97,7 +97,7 @@ export async function POST(req) {
     if (now.getTime() > batas) {
       status = "TERLAMBAT";
       const telat = Math.round((now.getTime() - batas) / 60000) + BATAS_MENIT;
-      notes.push(`Titik cek terlambat ${telat} menit dari waktunya`);
+      notes.push(`Absen progres terlambat ${telat} menit dari waktunya`);
     }
   }
 
@@ -119,7 +119,7 @@ export async function POST(req) {
         where: { sessionId: session.id, userId: user.id, kind: "CHECKPOINT" },
       });
       const missed = Math.max(0, expected - actual);
-      if (missed > 0) notes.push(`Titik cek terlewat: ${missed}`);
+      if (missed > 0) notes.push(`Absen progres terlewat: ${missed}`);
     }
   }
 

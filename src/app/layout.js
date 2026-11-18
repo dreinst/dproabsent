@@ -30,18 +30,19 @@ export default function RootLayout({ children }) {
     <html lang="id" className={inter.variable}>
       <body>
         {children}
-        <footer style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12, padding: "20px 16px 24px", fontSize: 11, color: "var(--muted)", fontFamily: "var(--font-inter), system-ui, sans-serif" }}>
+        {/* Kaki navy seperti landing dpro.events, logo dibuat putih lewat CSS. */}
+        <footer className="kaki">
           <span>
             Made by{" "}
-            <a href="https://www.instagram.com/dreiinst/" target="_blank" rel="noopener noreferrer" style={{ color: "inherit", textDecoration: "none" }}>
+            <a href="https://www.instagram.com/dreiinst/" target="_blank" rel="noopener noreferrer">
               dreinst
             </a>
           </span>
-          <span aria-hidden="true" style={{ width: 1, height: 14, background: "var(--line)" }} />
-          <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+          <span className="kaki-garis" aria-hidden="true" />
+          <span className="kaki-org">
             Organized by
             {/* eslint-disable-next-line @next/next/no-img-element -- SVG statis, tanpa optimasi */}
-            <img src="/logo-dpro-ringkas.svg?v=2" alt="D'PRO" style={{ height: 16, width: "auto", opacity: 0.7 }} />
+            <img src="/logo-dpro-ringkas.svg?v=2" alt="D'PRO" />
           </span>
         </footer>
       </body>

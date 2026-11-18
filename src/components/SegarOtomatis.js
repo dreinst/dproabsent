@@ -38,7 +38,7 @@ export default function SegarOtomatis() {
 
   return (
     <span className="segar-otomatis">
-      Diperbarui otomatis tiap 1 menit{terakhir ? `, terakhir ${fmtJam.format(terakhir)}` : ""}
+      Diperbarui otomatis setiap 1 menit{terakhir ? `, terakhir pukul ${fmtJam.format(terakhir)}` : ""}
     </span>
   );
 }

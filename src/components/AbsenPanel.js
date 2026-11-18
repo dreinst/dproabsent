@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { KIND, STATUS, nadaStatus } from "@/lib/label";
 import { BATAS_MENIT } from "@/lib/aturan";
 
-const LABEL = { MASUK: "Absen masuk", CHECKPOINT: "Absen titik cek", PULANG: "Absen pulang" };
+const LABEL = { MASUK: "Absen masuk", CHECKPOINT: "Absen progres", PULANG: "Absen pulang" };
 
 const mmss = (ms) => {
   const s = Math.max(0, Math.ceil(ms / 1000));
@@ -83,7 +83,7 @@ export default function AbsenPanel({ session, existing, lastAt }) {
         }
       } catch {
         if (!cancelled) {
-          setErr("Tidak bisa membuka kamera. Izinkan akses kamera di browser.");
+          setErr("Kamera tidak dapat dibuka. Mohon izinkan akses kamera di browser.");
           setKind(null);
         }
       }
@@ -147,7 +147,7 @@ export default function AbsenPanel({ session, existing, lastAt }) {
     try {
       const pos = await ambilPosisi();
       if (!pos) {
-        setErr("Lokasi tidak terbaca. Aktifkan GPS dan izinkan lokasi, lalu coba lagi.");
+        setErr("Lokasi tidak terbaca. Mohon aktifkan GPS dan izinkan akses lokasi, lalu coba lagi.");
         return;
       }
       const res = await fetch("/api/absen", {
@@ -164,26 +164,26 @@ export default function AbsenPanel({ session, existing, lastAt }) {
         }),
       });
       const data = await res.json();
-      if (!res.ok) { setErr(data.error || "Gagal menyimpan absen."); return; }
+      if (!res.ok) { setErr(data.error || "Absen gagal disimpan. Silakan coba lagi."); return; }
       setOk(
-        `${LABEL[kind]} tersimpan` +
-        (data.insideRadius ? "." : ` (di luar radius, ${data.distanceM} m dari titik).`)
+        `${LABEL[kind]} berhasil disimpan.` +
+        (data.insideRadius ? "" : ` Posisi Anda di luar radius, ${data.distanceM} m dari titik acara.`)
       );
       setKind(null); setShot(null); setActivity("");
       setNow(Date.now());
       router.refresh();
     } catch {
-      setErr("Jaringan bermasalah, coba lagi.");
+      setErr("Koneksi internet bermasalah. Silakan coba lagi.");
     } finally {
       setBusy(false);
     }
   }
 
   return (
-    <div>
+    <div className="absen-panel">
       {gps === "ditolak" && !hasPulang && (
         <div className="err" style={{ marginBottom: 12 }}>
-          Lokasi belum diizinkan. Aktifkan GPS dan izinkan lokasi di browser supaya absen bisa terkirim.
+          Akses lokasi belum diizinkan. Mohon aktifkan GPS dan izinkan akses lokasi di browser agar absen dapat terkirim.
         </div>
       )}
 
@@ -191,20 +191,20 @@ export default function AbsenPanel({ session, existing, lastAt }) {
         <div className={`hitung ${fase}`}>
           {fase === "tunggu" && (
             <>
-              <span>Absen berikutnya</span>
+              <span>Absen progres berikutnya</span>
               <b>{mmss(jatuhTempo - now)}</b>
             </>
           )}
           {fase === "saatnya" && (
             <>
-              <span>Waktunya absen, sisa</span>
+              <span>Saatnya absen progres, sisa waktu</span>
               <b>{mmss(batasAkhir - now)}</b>
             </>
           )}
           {fase === "telat" && (
             <>
-              <span>Sudah lewat batas</span>
-              <b>Absen sekarang</b>
+              <span>Batas waktu absen progres terlewati</span>
+              <b>Silakan absen sekarang</b>
             </>
           )}
         </div>
@@ -214,10 +214,10 @@ export default function AbsenPanel({ session, existing, lastAt }) {
       {ok && <div className="ok-msg" style={{ margin: "10px 0" }}>{ok}</div>}
 
       {hasPulang ? (
-        <div className="meta" style={{ margin: "8px 0" }}>Sesi selesai. Absen lengkap.</div>
+        <div className="meta" style={{ margin: "8px 0" }}>Sesi selesai. Absen Anda sudah lengkap.</div>
       ) : (
         <div className="tumpuk">
-          {shiftSelesai && <div className="hitung"><span>Shift sudah selesai</span><b>Waktunya pulang</b></div>}
+          {shiftSelesai && <div className="hitung pulang"><span>Shift telah selesai</span><b>Silakan absen pulang</b></div>}
           <button
             className={`tombol-besar ${aksi === "CHECKPOINT" && fase === "saatnya" ? "denyut" : ""}`}
             onClick={() => openCamera(aksi)}
@@ -230,7 +230,7 @@ export default function AbsenPanel({ session, existing, lastAt }) {
 
       {existing.length > 0 && (
         <details className="riwayat-sesi">
-          <summary>Absen sesi ini ({existing.length})</summary>
+          <summary>Riwayat absen sesi ini ({existing.length})</summary>
           {existing.map((e) => (
             <div key={e.id}>
               <div className="absen-baris">
@@ -244,7 +244,7 @@ export default function AbsenPanel({ session, existing, lastAt }) {
                   </div>
                 </div>
                 <span className={`badge ${e.insideRadius ? nadaStatus(e.status) : "bad"}`}>
-                  {e.insideRadius ? STATUS[e.status] : "Luar radius"}
+                  {e.insideRadius ? STATUS[e.status] : "Di luar radius"}
                 </span>
               </div>
               {e.note && <div className="note" style={{ margin: "-2px 0 8px" }}>{e.note}</div>}
@@ -265,33 +265,37 @@ export default function AbsenPanel({ session, existing, lastAt }) {
             )}
             <div className="kamera-atas">
               <button className="kaca-tombol" onClick={cancel} disabled={busy}>Batal</button>
-              <span className="kaca">{KIND[kind]} · {session.jobdesc}</span>
-              {!shot ? (
+              {!shot && (
                 <button
                   className="kaca-tombol"
                   onClick={() => setFacing((f) => (f === "environment" ? "user" : "environment"))}
                 >
-                  Balik
+                  Ganti kamera
                 </button>
-              ) : <span style={{ width: 64 }} />}
+              )}
             </div>
+            {/* Label di baris sendiri supaya nama tugas yang panjang tidak terpotong oleh tombol. */}
+            <span className="kaca kamera-label">{LABEL[kind]} · {session.jobdesc}</span>
           </div>
 
           {!shot ? (
             <div className="kamera-bawah">
               <button className="shutter" onClick={capture} aria-label="Ambil foto" />
-              <p>Foto langsung dari kamera. Lokasi diambil otomatis.</p>
+              <p>Foto diambil langsung dari kamera. Lokasi tercatat otomatis.</p>
             </div>
           ) : (
             <div className="kamera-bawah form">
-              <input
-                type="text"
-                placeholder="Lagi ngapain? Contoh: pasang rigging panggung"
-                value={activity}
-                onChange={(e) => setActivity(e.target.value)}
-                maxLength={300}
-                autoFocus
-              />
+              <label className="kamera-isian">
+                Yang dikerjakan
+                <input
+                  type="text"
+                  placeholder="Contoh: Memasang rigging panggung"
+                  value={activity}
+                  onChange={(e) => setActivity(e.target.value)}
+                  maxLength={300}
+                  autoFocus
+                />
+              </label>
               {err && <div className="err">{err}</div>}
               <button className="tombol-besar" onClick={send} disabled={busy}>
                 {busy ? "Mengirim..." : "Kirim"}

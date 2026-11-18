@@ -8,7 +8,7 @@ export default function FormAcara({ acara }) {
       {acara && <input type="hidden" name="id" value={acara.id} />}
       <label>Nama acara</label>
       <input type="text" name="name" defaultValue={acara?.name} required />
-      <label>Klien (boleh kosong)</label>
+      <label>Klien (opsional)</label>
       <input type="text" name="client" defaultValue={acara?.client || ""} />
       <label>Titik lokasi (lintang, bujur)</label>
       <KoordinatInput defaultValue={acara ? `${acara.lat}, ${acara.lng}` : ""} />
@@ -20,12 +20,12 @@ export default function FormAcara({ acara }) {
           <input type="datetime-local" name="startAt" defaultValue={keInput(acara?.startAt)} required />
         </div>
         <div>
-          <label>Selesai (WIB, boleh kosong)</label>
+          <label>Selesai (WIB, opsional)</label>
           <input type="datetime-local" name="endAt" defaultValue={keInput(acara?.endAt)} />
         </div>
       </div>
       <label className="pilihan">
-        <div className="grow"><b>Acara aktif</b><span>Sesinya muncul di halaman absen crew.</span></div>
+        <div className="grow"><b>Acara aktif</b><span>Sesi acara ini tampil di halaman absen crew.</span></div>
         <input type="checkbox" className="sakelar" name="active" defaultChecked={acara ? acara.active : true} />
       </label>
       <div className="row" style={{ marginTop: 16 }}>

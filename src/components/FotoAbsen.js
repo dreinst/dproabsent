@@ -29,14 +29,17 @@ export default function FotoAbsen({ id, nama, ket, jam, children }) {
           onClick={(e) => { if (e.target === dlg.current || e.target.classList.contains("foto-isi")) dlg.current.close(); }}
         >
           <div className="foto-isi">
+            {/* Tombol Tutup paling awal: tetap terlihat di pojok kanan atas dan jadi fokus pertama saat dialog dibuka. */}
+            <button type="button" className="foto-tutup" onClick={() => dlg.current?.close()}>Tutup</button>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img className="foto-besar" src={`/api/foto/${id}`} alt={`Foto absen ${nama}`} />
-            <div className="foto-ket">
-              <b>{nama}</b>
-              {ket.map((t, i) => <span key={i}>{t}</span>)}
+            <div className="foto-panel">
+              <div className="foto-ket">
+                <b>{nama}</b>
+                {ket.map((t, i) => <span key={i}>{t}</span>)}
+              </div>
+              {children && <div className="foto-aksi">{children}</div>}
             </div>
-            {children && <div className="foto-aksi">{children}</div>}
-            <button type="button" className="foto-tutup" onClick={() => dlg.current?.close()}>Tutup</button>
           </div>
         </dialog>
       )}

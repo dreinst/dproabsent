@@ -37,7 +37,7 @@ export async function simpanAcara(f) {
   if (!m || Math.abs(lat) > 90 || Math.abs(lng) > 180) {
     kembali(path, "err", "Koordinat belum benar. Contoh: -7.96662, 112.63263");
   }
-  if (!(radiusM >= 10 && radiusM <= 100000)) kembali(path, "err", "Radius diisi antara 10 dan 100000 meter.");
+  if (!(radiusM >= 10 && radiusM <= 100000)) kembali(path, "err", "Radius harus antara 10 dan 100000 meter.");
   if (!startAt) kembali(path, "err", "Waktu mulai acara wajib diisi.");
   if (endAt && endAt <= startAt) kembali(path, "err", "Waktu selesai harus setelah waktu mulai.");
 
@@ -49,7 +49,7 @@ export async function simpanAcara(f) {
   const acara = id
     ? await prisma.event.update({ where: { id }, data })
     : await prisma.event.create({ data });
-  kembali(`/admin/acara/${acara.id}`, "ok", id ? "Acara disimpan." : "Acara dibuat. Tambahkan sesi tugasnya di bawah.");
+  kembali(`/admin/acara/${acara.id}`, "ok", id ? "Data acara berhasil disimpan." : "Acara berhasil dibuat. Silakan tambahkan sesi tugasnya.");
 }
 
 export async function simpanSesi(f) {
@@ -66,19 +66,19 @@ export async function simpanSesi(f) {
   if (!jobdesc) kembali(path, "err", "Nama tugas sesi wajib diisi.");
   if (!startAt || !endAt) kembali(path, "err", "Waktu mulai dan selesai sesi wajib diisi.");
   if (endAt <= startAt) kembali(path, "err", "Waktu selesai sesi harus setelah waktu mulai.");
-  if (graceMinutes < 0) kembali(path, "err", "Batas telat tidak boleh negatif.");
+  if (graceMinutes < 0) kembali(path, "err", "Toleransi keterlambatan tidak boleh negatif.");
 
   // Jarak titik cek per sesi. Kosong berarti bawaan.
   const mentah = teks(f, "checkpointMinutes");
   const checkpointMinutes = mentah === "" ? JEDA_MENIT : Number(mentah);
   if (!Number.isInteger(checkpointMinutes) || checkpointMinutes < JEDA_MIN || checkpointMinutes > JEDA_MAKS) {
-    kembali(path, "err", `Jarak titik cek harus bilangan bulat antara ${JEDA_MIN} dan ${JEDA_MAKS} menit.`);
+    kembali(path, "err", `Jarak absen progres harus berupa bilangan bulat antara ${JEDA_MIN} dan ${JEDA_MAKS} menit.`);
   }
 
   const data = { jobdesc, startAt, endAt, checkpointMinutes, graceMinutes };
   if (id) await prisma.session.update({ where: { id, eventId }, data });
   else await prisma.session.create({ data: { ...data, eventId } });
-  kembali(path, "ok", id ? "Sesi disimpan." : "Sesi ditambahkan.");
+  kembali(path, "ok", id ? "Sesi berhasil disimpan." : "Sesi berhasil ditambahkan.");
 }
 
 export async function hapusSesi(f) {
@@ -88,19 +88,19 @@ export async function hapusSesi(f) {
   const path = `/admin/acara/${eventId}`;
   // Sesi yang sudah punya absen tidak boleh hilang, karena absennya ikut terhapus.
   const dipakai = await prisma.absensi.count({ where: { sessionId: id } });
-  if (dipakai > 0) kembali(path, "err", `Sesi ini sudah punya ${dipakai} absen, jadi tidak bisa dihapus.`);
+  if (dipakai > 0) kembali(path, "err", `Sesi ini sudah memiliki ${dipakai} absen sehingga tidak dapat dihapus.`);
   await prisma.session.delete({ where: { id, eventId } });
-  kembali(path, "ok", "Sesi dihapus.");
+  kembali(path, "ok", "Sesi berhasil dihapus.");
 }
 
 // Akun owner hanya boleh disentuh owner, peran owner hanya boleh diberikan owner,
 // dan admin tidak boleh mengunci dirinya sendiri.
 function cekHak(admin, lama, role, active) {
   if ((lama?.role === "OWNER" || role === "OWNER") && admin.role !== "OWNER") {
-    return "Hanya owner yang bisa mengatur akun owner.";
+    return "Hanya owner yang dapat mengatur akun owner.";
   }
   if (lama?.id === admin.id && (role !== admin.role || !active)) {
-    return "Peran dan status akunmu sendiri tidak bisa diubah dari sini.";
+    return "Peran dan status akun Anda sendiri tidak dapat diubah dari halaman ini.";
   }
   return null;
 }
@@ -118,7 +118,7 @@ export async function aktifAcara(f) {
   const acara = await prisma.event.findUnique({ where: { id: bulat(f, "id") || 0 } });
   if (!acara) sambung(path, "err", "Acara tidak ditemukan.");
   await prisma.event.update({ where: { id: acara.id }, data: { active: !acara.active } });
-  sambung(path, "ok", `${acara.name} ${acara.active ? "dinonaktifkan" : "diaktifkan"}.`);
+  sambung(path, "ok", `Acara ${acara.name} ${acara.active ? "dinonaktifkan" : "diaktifkan"}.`);
 }
 
 export async function aktifCrew(f) {
@@ -154,13 +154,13 @@ export async function simpanCrew(f) {
   const tolak = cekHak(admin, lama, role, active);
   if (tolak) kembali(path, "err", tolak);
   const kembar = await prisma.user.findUnique({ where: { phone } });
-  if (kembar && kembar.id !== id) kembali(path, "err", `Nomor ${phone} sudah dipakai ${kembar.name}.`);
+  if (kembar && kembar.id !== id) kembali(path, "err", `Nomor ${phone} sudah digunakan oleh ${kembar.name}.`);
 
   const data = { name, phone, role, active, bankAccount: teks(f, "bankAccount") || null };
   if (password) data.passwordHash = hashPassword(password);
   if (id) await prisma.user.update({ where: { id }, data });
   else await prisma.user.create({ data });
-  kembali(path, "ok", id ? `Akun ${name} disimpan.` : `Akun ${name} dibuat.`);
+  kembali(path, "ok", id ? `Akun ${name} berhasil disimpan.` : `Akun ${name} berhasil dibuat.`);
 }
 
 // Gambar abu-abu kecil sebagai pengganti foto untuk absen yang dicatat admin.
@@ -176,12 +176,12 @@ export async function catatPulang(f) {
     include: { user: true, session: { include: { event: true } } },
   });
   if (!masuk || masuk.kind !== "MASUK") sambung(path, "err", "Absen masuk tidak ditemukan.");
-  if (masuk.session.endAt > new Date()) sambung(path, "err", "Shift belum selesai, crew masih bisa absen pulang sendiri.");
+  if (masuk.session.endAt > new Date()) sambung(path, "err", "Shift belum selesai. Crew masih dapat absen pulang sendiri.");
   const sudah = await prisma.absensi.findFirst({
     where: { sessionId: masuk.sessionId, userId: masuk.userId, kind: "PULANG" },
     select: { id: true },
   });
-  if (sudah) sambung(path, "err", `${masuk.user.name} sudah punya absen pulang di sesi ini.`);
+  if (sudah) sambung(path, "err", `${masuk.user.name} sudah memiliki absen pulang di sesi ini.`);
 
   // Hash dibuat unik per crew dan sesi supaya tidak bentrok dengan pemeriksaan foto identik.
   const photoHash = createHash("sha256").update(`pulang-admin:${masuk.sessionId}:${masuk.userId}`).digest("hex");
@@ -198,10 +198,10 @@ export async function catatPulang(f) {
       insideRadius: true,
       photo: TANPA_FOTO,
       photoHash,
-      note: `Pulang dicatat oleh ${admin.name} karena crew lupa absen, tanpa foto dan lokasi`,
+      note: `Pulang dicatat oleh ${admin.name} karena crew belum absen pulang, tanpa foto dan lokasi`,
       verifiedById: admin.id,
       verifiedAt: new Date(),
     },
   });
-  sambung(path, "ok", `Pulang ${masuk.user.name} dicatat di jam selesai shift.`);
+  sambung(path, "ok", `Absen pulang ${masuk.user.name} dicatat pada jam selesai shift.`);
 }

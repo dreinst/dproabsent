@@ -8,20 +8,23 @@ export const dynamic = "force-dynamic";
 export default async function LoginPage() {
   const user = await getCurrentUser();
   if (user) redirect(isAdmin(user) ? "/admin" : "/");
+  // HP: hero di atas, form di bawahnya. Laptop: hero setinggi layar di kiri, form dan bantuan di kanan.
   return (
     <div className="masuk">
       <div className="hero">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/logo-dpro.svg" alt="D'Production" />
         <div>
-          <div className="mata">Absen crew D&apos;Production</div>
-          <h1>Masuk dulu,<br />lalu absen.</h1>
+          <div className="mata">Absensi crew D&apos;Production</div>
+          <h1>Silakan masuk<br />untuk absen.</h1>
         </div>
       </div>
-      <LoginForm />
-      <div className="butuh-bantuan">
-        <div className="judul-bantuan">Butuh bantuan?</div>
-        <BantuanWa jenis={["belum", "password", "lain"]} />
+      <div className="masuk-isi">
+        <LoginForm />
+        <div className="butuh-bantuan">
+          <div className="judul-bantuan">Perlu bantuan?</div>
+          <BantuanWa jenis={["belum", "password", "lain"]} />
+        </div>
       </div>
     </div>
   );

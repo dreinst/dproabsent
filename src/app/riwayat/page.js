@@ -21,22 +21,26 @@ export default async function RiwayatPage() {
   });
 
   return (
-    <div className="wrap">
-      <div className="topbar">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img className="brand-logo" src="/logo-dpro.svg" alt="D'Production" />
-        <LogoutButton />
-      </div>
-      <div className="judul">
-        <h1>Riwayat absen</h1>
-        <p>{user.name}</p>
-      </div>
-      <div className="row" style={{ marginBottom: 12 }}>
-        <Link href="/" className="btn-ghost btn-kecil">Kembali ke absen</Link>
-      </div>
+    <div className="wrap riwayat-hal">
+      <header className="crew-hero">
+        <nav className="bilah" aria-label="Akun">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img className="brand-logo" src="/logo-dpro.svg" alt="D'Production" />
+          <LogoutButton />
+        </nav>
+        <div className="crew-hero-isi">
+          <div className="judul">
+            <h1>Riwayat absen</h1>
+            <p>{user.name}</p>
+          </div>
+          <div className="row">
+            <Link href="/" className="btn-ghost btn-kecil">Kembali ke halaman absen</Link>
+          </div>
+        </div>
+      </header>
 
       {rows.length === 0 && (
-        <div className="card"><h2>Belum ada riwayat</h2><p className="sub">Absen pertamamu akan muncul di sini.</p></div>
+        <div className="card"><h2>Belum ada riwayat absen</h2><p className="sub">Absen pertama Anda akan tampil di sini.</p></div>
       )}
 
       {rows.map((r) => (
@@ -51,11 +55,11 @@ export default async function RiwayatPage() {
             <div className="lencana">
               <span className={`badge ${nadaStatus(r.status)}`}>{STATUS[r.status]}</span>
               <span className={`badge ${r.insideRadius ? "muted" : "bad"}`}>
-                {r.distanceM} m{!r.insideRadius && ", luar radius"}
+                {r.distanceM} m{!r.insideRadius && ", di luar radius"}
               </span>
               {r.verifiedAt ? <span className="badge ok">Sah</span> : <span className="badge warn">Belum disahkan</span>}
             </div>
-            {r.activity && <div className="meta" style={{ marginTop: 6 }}>{r.activity}</div>}
+            {r.activity && <div className="meta" style={{ marginTop: 6 }}>Yang dikerjakan: {r.activity}</div>}
           </div>
         </div>
       ))}

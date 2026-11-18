@@ -25,7 +25,7 @@ export async function POST(req) {
   const tunggu = Math.max(sisaTunggu(kunciNomor, MAKS_PER_NOMOR), sisaTunggu(kunciIp, MAKS_PER_IP));
   if (tunggu > 0) {
     return NextResponse.json(
-      { error: `Terlalu banyak percobaan. Coba lagi dalam ${Math.ceil(tunggu / 60)} menit.` },
+      { error: `Terlalu banyak percobaan masuk. Silakan coba lagi dalam ${Math.ceil(tunggu / 60)} menit.` },
       { status: 429, headers: { "retry-after": String(tunggu) } }
     );
   }
@@ -50,7 +50,7 @@ export async function POST(req) {
   if (!sah) {
     catatGagal(kunciNomor);
     catatGagal(kunciIp);
-    return NextResponse.json({ error: pakaiNama ? "Nama admin atau password salah. Crew masuk pakai nomor HP." : "Nomor HP atau password salah." }, { status: 401 });
+    return NextResponse.json({ error: pakaiNama ? "Nama admin atau password salah. Crew masuk menggunakan nomor HP." : "Nomor HP atau password salah." }, { status: 401 });
   }
 
   hapusCatatan(kunciNomor);

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import LogoutButton from "@/components/LogoutButton";
 import SegarOtomatis from "@/components/SegarOtomatis";
+import MenuAdmin from "@/components/MenuAdmin";
 
 const MENU = [
   ["/admin", "Verifikasi"],
@@ -9,12 +10,17 @@ const MENU = [
 ];
 const PERAN = { OWNER: "Owner", SUPERADMIN: "Superadmin" };
 
-// Kerangka panel pengelola: sidebar, judul halaman, tombol aksi, dan pesan hasil aksi (?ok= atau ?err=).
+// Kerangka panel pengelola: sidebar navy di laptop, bilah atas dan menu layar penuh di HP,
+// judul halaman, tombol aksi, dan pesan hasil aksi (?ok= atau ?err=).
 export default function AdminShell({ user, tab, title, sub, aksi, pesan = {}, children }) {
   return (
     <div className="admin">
       <aside className="sisi">
-        <div className="merek"><b>DPro Absen</b><span>Panel pengelola</span></div>
+        <div className="merek">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo-dpro.svg" alt="D'Production" />
+          <b>DPro Absen</b><span>Panel pengelola</span>
+        </div>
         {MENU.map(([href, label]) => (
           <Link key={href} href={href} className={href === tab ? "menu on" : "menu"}>{label}</Link>
         ))}
@@ -25,6 +31,12 @@ export default function AdminShell({ user, tab, title, sub, aksi, pesan = {}, ch
           <LogoutButton />
         </div>
       </aside>
+      <MenuAdmin
+        menu={[...MENU.map(([href, label]) => [href, label, href === tab]), ["/", "Absen saya", false]]}
+        nama={user.name} peran={PERAN[user.role]}
+      >
+        <LogoutButton />
+      </MenuAdmin>
       <main className="isi">
         <div className="kepala">
           <div className="judul"><h1>{title}</h1><p>{sub}</p><SegarOtomatis /></div>

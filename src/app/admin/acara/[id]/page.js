@@ -15,7 +15,7 @@ function FormSesi({ eventId, sesi, mulai }) {
     <form action={simpanSesi}>
       <input type="hidden" name="eventId" value={eventId} />
       {sesi && <input type="hidden" name="id" value={sesi.id} />}
-      <label>Tugas (misalnya Loading, Gladi, Event)</label>
+      <label>Nama tugas (misalnya Loading, Gladi, Event)</label>
       <input type="text" name="jobdesc" defaultValue={sesi?.jobdesc} required />
       <div className="dua">
         <div>
@@ -29,17 +29,17 @@ function FormSesi({ eventId, sesi, mulai }) {
       </div>
       <div className="dua">
         <div>
-          <label>Titik cek tiap (menit)</label>
+          <label>Jarak absen progres (menit)</label>
           <input
             type="number" name="checkpointMinutes" min={JEDA_MIN} max={JEDA_MAKS} step="1"
             defaultValue={sesi ? jedaSesi(sesi) : JEDA_MENIT}
           />
           <div className="meta" style={{ marginTop: 4 }}>
-            Bawaan 60 menit. Kalau lebih panjang dari durasi sesi, crew cukup absen masuk dan pulang.
+            Bawaan 60 menit. Jika lebih panjang dari durasi sesi, crew cukup absen masuk dan pulang.
           </div>
         </div>
         <div>
-          <label>Batas telat (menit)</label>
+          <label>Toleransi keterlambatan (menit)</label>
           <input type="number" name="graceMinutes" min="0" defaultValue={sesi?.graceMinutes ?? 15} />
         </div>
       </div>
@@ -72,7 +72,7 @@ export default async function AcaraDetailPage({ params, searchParams }) {
   return (
     <AdminShell
       user={user} tab="/admin/acara" title={acara.name} pesan={await searchParams}
-      sub={acara.active ? "Acara aktif. Ubah data acara dan atur sesi tugasnya." : "Acara nonaktif, tidak tampil di halaman crew."}
+      sub={acara.active ? "Acara aktif. Ubah data acara dan atur sesi tugasnya di halaman ini." : "Acara nonaktif dan tidak tampil di halaman crew."}
       aksi={<Link href="/admin/acara" className="btn-ghost">Kembali ke daftar acara</Link>}
     >
       <div className="dua-kolom">
@@ -83,7 +83,7 @@ export default async function AcaraDetailPage({ params, searchParams }) {
 
         <div className="card">
           <h2>Sesi tugas</h2>
-          <p className="sub" style={{ margin: 0 }}>Crew absen per sesi. Ketuk sesi untuk mengubahnya.</p>
+          <p className="sub" style={{ margin: 0 }}>Crew melakukan absen per sesi. Pilih sesi untuk mengubahnya.</p>
           {acara.sessions.map((s) => (
             <details className="sesi" key={s.id}>
               <summary>
@@ -91,7 +91,7 @@ export default async function AcaraDetailPage({ params, searchParams }) {
                   <b>{s.jobdesc}</b>
                   <span className="meta">{fmtWaktu(s.startAt)} sampai {fmtWaktu(s.endAt)}</span>
                   <br />
-                  <span className="meta">Titik cek tiap {jedaSesi(s)} menit</span>
+                  <span className="meta">Absen progres setiap {jedaSesi(s)} menit</span>
                 </div>
                 <span className="badge muted" style={{ background: "#fff" }}>{s._count.absensi} absen</span>
               </summary>
@@ -102,7 +102,7 @@ export default async function AcaraDetailPage({ params, searchParams }) {
             <summary><b>Tambah sesi</b></summary>
             <FormSesi eventId={acara.id} mulai={acara.startAt} />
           </details>
-          <p className="meta" style={{ margin: "14px 0 0" }}>Sesi yang sudah punya absen tidak bisa dihapus.</p>
+          <p className="meta" style={{ margin: "14px 0 0" }}>Sesi yang sudah memiliki absen tidak dapat dihapus.</p>
         </div>
       </div>
     </AdminShell>

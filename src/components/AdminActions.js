@@ -25,7 +25,7 @@ export default function AdminActions({ id, verified, tutupDialog = false }) {
   }
 
   if (verified) {
-    return <button className="btn-ghost btn-kecil" onClick={(e) => act("batal", e)} disabled={busy}>Batalkan sah</button>;
+    return <button className="btn-ghost btn-kecil" onClick={(e) => act("batal", e)} disabled={busy}>Batalkan pengesahan</button>;
   }
   return (
     <div className="row" style={{ gap: 6, flexWrap: "nowrap" }}>

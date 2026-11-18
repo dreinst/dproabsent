@@ -26,14 +26,14 @@ export default function LoginForm() {
       });
       const data = await res.json();
       if (!res.ok) {
-        setErr(data.error || "Gagal masuk.");
+        setErr(data.error || "Gagal masuk. Silakan coba lagi.");
         setKode(res.status);
         return;
       }
       router.replace(data.role === "CREW" ? "/" : "/admin");
       router.refresh();
     } catch {
-      setErr("Jaringan bermasalah, coba lagi.");
+      setErr("Koneksi internet bermasalah. Silakan coba lagi.");
     } finally {
       setBusy(false);
     }
@@ -65,7 +65,7 @@ export default function LoginForm() {
         type="password"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
-        placeholder="Password dari kantor"
+        placeholder="Password yang diberikan kantor"
         autoComplete="current-password"
       />
       <div style={{ height: 16 }} />
