@@ -49,7 +49,8 @@ export default async function AdminPage({ searchParams }) {
   if (!isAdmin(user)) redirect("/");
 
   const sp = await searchParams;
-  const f = SARING[sp.f] || sp.f === "pulang" ? sp.f : "";
+  // Bawaan halaman adalah antrean "Belum disahkan". Daftar lengkap dipilih lewat ?f=semua.
+  const f = SARING[sp.f] || sp.f === "pulang" || sp.f === "semua" ? sp.f : "belum";
   const q = String(sp.q || "").trim();
   const periode = sp.periode === "lama" ? "lama" : "baru";
   const tglBatas = fmtHari(MULAI_DATA_BARU);
@@ -90,7 +91,7 @@ export default async function AdminPage({ searchParams }) {
     const u = new URLSearchParams();
     if (p === "lama") u.set("periode", "lama");
     if (a) u.set("acara", String(a));
-    if (st) u.set("f", st);
+    if (st && st !== "belum") u.set("f", st);
     if (kata) u.set("q", kata);
     const qs = u.toString();
     return qs ? `/admin?${qs}` : "/admin";
@@ -106,7 +107,7 @@ export default async function AdminPage({ searchParams }) {
       user={user} tab="/admin" title="Verifikasi absen"
       sub="Sahkan absen yang benar, tolak yang tidak sesuai."
       pesan={sp}
-      aksi={<Cari q={q} f={f} placeholder="Cari nama crew atau acara"
+      aksi={<Cari q={q} f={f === "belum" ? "" : f} placeholder="Cari nama crew atau acara"
         tambahan={{ periode: periode === "lama" ? "lama" : "", acara: acaraId ? String(acaraId) : "" }} />}
     >
       <div className="saring-baris">
@@ -141,9 +142,9 @@ export default async function AdminPage({ searchParams }) {
         <span className="saring-judul">Status</span>
         <div className="saring">
           {[
-            ["", "Semua", semua], ["belum", "Belum disahkan", belum],
-            ["luar", "Di luar radius", luar], ["telat", "Terlambat", telat],
-            ["pulang", "Belum pulang", idPulang.length],
+            ["belum", "Belum disahkan", belum], ["telat", "Terlambat", telat],
+            ["pulang", "Belum pulang", idPulang.length], ["luar", "Di luar radius", luar],
+            ["semua", "Semua", semua],
           ].map(([nilai, label, n]) => chip(url({ st: nilai }), nilai === f, label, n))}
         </div>
       </div>
@@ -182,7 +183,7 @@ export default async function AdminPage({ searchParams }) {
         <div className="baris kop" style={KOL}>
           <div>Foto</div><div>Crew</div><div>Acara dan sesi</div><div>Waktu</div><div>Status</div><div>Aksi</div>
         </div>
-        {rows.length === 0 && <div className="kosong">{totalPeriode === 0 ? kosongPeriode : "Tidak ada absen yang cocok."}</div>}
+        {rows.length === 0 && <div className="kosong">{totalPeriode === 0 ? kosongPeriode : f === "belum" && !q ? "Semua absen di sini sudah disahkan." : "Tidak ada absen yang cocok."}</div>}
         {rows.map((r) => (
           <div className="baris" style={KOL} key={r.id}>
             <div>
