@@ -8,6 +8,7 @@ import { hashPassword } from "@/lib/password";
 import { dariInput } from "@/lib/waktu";
 import { namaKapital } from "@/lib/nama";
 import { JEDA_MENIT, JEDA_MIN, JEDA_MAKS } from "@/lib/aturan";
+import { hapusCache, KUNCI_SESI_AKTIF } from "@/lib/cache";
 
 async function wajibAdmin() {
   const user = await getCurrentUser();
@@ -49,6 +50,8 @@ export async function simpanAcara(f) {
   const acara = id
     ? await prisma.event.update({ where: { id }, data })
     : await prisma.event.create({ data });
+  // Daftar sesi aktif di halaman crew ikut berubah.
+  await hapusCache(KUNCI_SESI_AKTIF);
   kembali(`/admin/acara/${acara.id}`, "ok", id ? "Data acara berhasil disimpan." : "Acara berhasil dibuat. Silakan tambahkan sesi tugasnya.");
 }
 
@@ -78,6 +81,7 @@ export async function simpanSesi(f) {
   const data = { jobdesc, startAt, endAt, checkpointMinutes, graceMinutes };
   if (id) await prisma.session.update({ where: { id, eventId }, data });
   else await prisma.session.create({ data: { ...data, eventId } });
+  await hapusCache(KUNCI_SESI_AKTIF);
   kembali(path, "ok", id ? "Sesi berhasil disimpan." : "Sesi berhasil ditambahkan.");
 }
 
@@ -90,6 +94,7 @@ export async function hapusSesi(f) {
   const dipakai = await prisma.absensi.count({ where: { sessionId: id } });
   if (dipakai > 0) kembali(path, "err", `Sesi ini sudah memiliki ${dipakai} absen sehingga tidak dapat dihapus.`);
   await prisma.session.delete({ where: { id, eventId } });
+  await hapusCache(KUNCI_SESI_AKTIF);
   kembali(path, "ok", "Sesi berhasil dihapus.");
 }
 
@@ -118,6 +123,7 @@ export async function aktifAcara(f) {
   const acara = await prisma.event.findUnique({ where: { id: bulat(f, "id") || 0 } });
   if (!acara) sambung(path, "err", "Acara tidak ditemukan.");
   await prisma.event.update({ where: { id: acara.id }, data: { active: !acara.active } });
+  await hapusCache(KUNCI_SESI_AKTIF);
   sambung(path, "ok", `Acara ${acara.name} ${acara.active ? "dinonaktifkan" : "diaktifkan"}.`);
 }
 

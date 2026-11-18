@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser, isAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { ambilCache, KUNCI_SESI_AKTIF } from "@/lib/cache";
 import { fmtWaktu, fmtSingkat } from "@/lib/waktu";
 import { jedaSesi } from "@/lib/aturan";
 import LogoutButton from "@/components/LogoutButton";
@@ -23,15 +24,25 @@ export default async function CrewHome() {
   // Owner dan superadmin kadang turun jadi crew, jadi mereka juga boleh absen di sini.
   const admin = isAdmin(user);
 
-  const sessions = await prisma.session.findMany({
-    where: { event: { active: true } },
-    include: {
-      event: true,
-      // omit photo: foto diambil lewat /api/foto/[id], tidak ikut dimuat dari database.
-      absensi: { where: { userId: user.id }, orderBy: { checkedAt: "asc" }, omit: { photo: true } },
-    },
-    orderBy: { startAt: "asc" },
-  });
+  // Daftar sesi acara aktif sama untuk semua crew, jadi disimpan di cache 15 detik.
+  // Cache dikosongkan oleh aksi admin yang mengubah acara atau sesi (src/app/admin/actions.js).
+  const daftarSesi = await ambilCache(KUNCI_SESI_AKTIF, 15, () =>
+    prisma.session.findMany({
+      where: { event: { active: true } },
+      include: { event: true },
+      orderBy: { startAt: "asc" },
+    })
+  );
+  // Absen milik crew yang login selalu diambil langsung dari database.
+  const absenSaya = daftarSesi.length
+    ? await prisma.absensi.findMany({
+        where: { userId: user.id, sessionId: { in: daftarSesi.map((s) => s.id) } },
+        orderBy: { checkedAt: "asc" },
+        // omit photo: foto diambil lewat /api/foto/[id], tidak ikut dimuat dari database.
+        omit: { photo: true },
+      })
+    : [];
+  const sessions = daftarSesi.map((s) => ({ ...s, absensi: absenSaya.filter((a) => a.sessionId === s.id) }));
   const now = new Date();
 
   return (
