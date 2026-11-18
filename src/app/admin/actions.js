@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { getCurrentUser, isAdmin, normalizePhone } from "@/lib/auth";
 import { hashPassword } from "@/lib/password";
 import { dariInput } from "@/lib/waktu";
+import { namaKapital } from "@/lib/nama";
 import { JEDA_MENIT, JEDA_MIN, JEDA_MAKS } from "@/lib/aturan";
 
 async function wajibAdmin() {
@@ -136,7 +137,7 @@ export async function simpanCrew(f) {
   const id = bulat(f, "id") || null;
   const path = "/admin/crew";
 
-  const name = teks(f, "name");
+  const name = namaKapital(teks(f, "name"));
   const phone = normalizePhone(f.get("phone"));
   const role = teks(f, "role") || "CREW";
   const active = f.get("active") === "on";

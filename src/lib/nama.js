@@ -9,6 +9,16 @@ export function rapikanNama(nama) {
     .trim();
 }
 
+// Nama crew selalu diawali huruf kapital di setiap kata: "andrew santoso" atau "ANDREW SANTOSO" jadi "Andrew Santoso".
+// Kalau diketik campuran huruf besar dan kecil, hanya huruf pertama tiap kata yang dikapitalkan,
+// supaya singkatan seperti "Aldi (PMI)" tetap utuh. Spasi berlebih dibuang.
+export function namaKapital(nama) {
+  const rapi = String(nama || "").trim().replace(/\s+/g, " ");
+  const seragam = rapi === rapi.toLowerCase() || rapi === rapi.toUpperCase();
+  const dasar = seragam ? rapi.toLowerCase() : rapi;
+  return dasar.replace(/(^|[^\p{L}\p{N}])(\p{L})/gu, (_, pisah, huruf) => pisah + huruf.toUpperCase());
+}
+
 export function namaDepan(nama) {
   return rapikanNama(nama).split(" ")[0] || "";
 }
