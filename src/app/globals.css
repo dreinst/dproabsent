@@ -226,7 +226,9 @@ summary::-webkit-details-marker { display: none; }
 }
 .kamera-bawah p { margin: 0; font-size: 12px; color: #a1a1a6; text-align: center; }
 .kamera-bawah.form { align-items: stretch; }
-.kamera-bawah.form input { background: #1c1c1e; color: #fff; border-color: transparent; }
+/* Selektor sengaja lebih spesifik dari aturan ".card input", supaya kolom di layar kamera tetap gelap dan teks yang diketik terbaca. */
+.layar-kamera .kamera-bawah.form input[type=text] { background: #1c1c1e; color: #fff; border-color: transparent; }
+.layar-kamera .kamera-bawah.form input[type=text]::placeholder { color: #8e8e93; }
 .kamera-bawah.form .btn-ghost { background: transparent; color: #fff; border-color: #3a3a3c; }
 .shutter {
   width: 76px; height: 76px; border-radius: 50%; border: 4px solid #fff; background: transparent;
