@@ -12,6 +12,9 @@ export const fmtWaktu = buat({
 export const fmtTanggal = buat({ day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
 export const fmtSingkat = buat({ day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
 
+// Tanggal saja, misalnya "18 Nov 2026".
+export const fmtHari = buat({ day: "numeric", month: "short", year: "numeric" });
+
 // Date -> nilai <input type="datetime-local"> dalam WIB.
 export const keInput = (d) => (d ? new Date(d.getTime() + 7 * 3600000).toISOString().slice(0, 16) : "");
 

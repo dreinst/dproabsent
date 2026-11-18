@@ -236,3 +236,22 @@ summary::-webkit-details-marker { display: none; }
 }
 .shutter::after { content: ""; position: absolute; inset: 5px; border-radius: 50%; background: #fff; }
 .shutter:active::after { inset: 8px; }
+
+/* Verifikasi: baris saringan bertingkat dan foto absen yang bisa diperbesar */
+.saring-baris { display: flex; align-items: center; gap: 8px 12px; flex-wrap: wrap; margin-bottom: 12px; }
+.saring-baris .saring { margin-bottom: 0; }
+.saring-judul { font-size: 12px; font-weight: 600; color: var(--muted); min-width: 56px; }
+.chip small { font-size: 11px; opacity: 0.7; margin-left: 4px; }
+.pilih-acara { height: 40px; width: 100%; max-width: 480px; min-width: 240px; border-radius: 999px; border: 0; padding: 0 16px; font-size: 13px; background: #fff; color: var(--text); }
+.thumb-btn { padding: 0; border: 0; background: none; border-radius: 14px; cursor: zoom-in; display: block; }
+.thumb-btn:focus-visible { outline: 2px solid var(--navy); outline-offset: 2px; }
+.foto-dlg { border: 0; padding: 0; background: transparent; max-width: 100vw; max-height: 100vh; width: 100vw; height: 100vh; }
+.foto-dlg::backdrop { background: rgba(8, 12, 22, 0.95); }
+.foto-isi { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 16px; pointer-events: none; }
+.foto-isi > * { pointer-events: auto; }
+.foto-besar { max-width: 92vw; max-height: 72vh; object-fit: contain; border-radius: 12px; background: #111; }
+.foto-ket { color: #fff; text-align: center; font-size: 13px; line-height: 1.5; max-width: 92vw; }
+.foto-ket b { display: block; font-size: 15px; }
+.foto-ket span { display: block; opacity: 0.85; }
+.foto-tutup { height: 40px; padding: 0 22px; border-radius: 999px; border: 0; background: #fff; color: var(--text); font-size: 14px; font-weight: 600; cursor: pointer; }
+@media (min-width: 768px) { .foto-besar { max-height: 78vh; } }

@@ -38,10 +38,12 @@ export default function AdminShell({ user, tab, title, sub, aksi, pesan = {}, ch
 }
 
 // Kotak cari dan chip saring memakai query ?q= dan ?f= di halaman yang sama.
-export function Cari({ q, f, placeholder }) {
+// `tambahan` berisi parameter lain yang ikut terkirim saat cari, misalnya { periode: "lama", acara: "3" }.
+export function Cari({ q, f, placeholder, tambahan = {} }) {
   return (
     <form className="cari">
-      {f && <input type="hidden" name="f" value={f} />}
+      {Object.entries(tambahan).map(([k, v]) => v ? <input key={k} type="hidden" name={k} value={v} /> : null)}
+      {f &&<input type="hidden" name="f" value={f} />}
       <input type="search" name="q" defaultValue={q} placeholder={placeholder} aria-label={placeholder} />
     </form>
   );
