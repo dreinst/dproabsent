@@ -3,13 +3,13 @@ import { redirect } from "next/navigation";
 import { getCurrentUser, isAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
-import { fmtSingkat, fmtHari } from "@/lib/waktu";
+import { fmtSingkat, fmtHari, fmtJam, fmtTanggal } from "@/lib/waktu";
 import { MULAI_DATA_BARU } from "@/lib/aturan";
 import FotoAbsen from "@/components/FotoAbsen";
 import PilihAcara from "@/components/PilihAcara";
 import { KIND, STATUS, nadaStatus } from "@/lib/label";
 import AdminShell, { Cari } from "@/components/AdminShell";
-import AdminActions from "@/components/AdminActions";
+import AdminActions, { SahkanSemua } from "@/components/AdminActions";
 import { catatPulang } from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -21,6 +21,8 @@ const SARING = {
 };
 // Kalau acaranya lebih dari ini, pilihan acara tampil sebagai dropdown.
 const MAKS_CHIP_ACARA = 8;
+// Jumlah absen terbaru yang diambil sebelum dikelompokkan per crew dan sesi.
+const MAKS_ABSEN = 300;
 const KOL_PULANG = { "--kol": "1.1fr 1.4fr 130px 130px 150px" };
 
 // Absen masuk yang shift-nya sudah selesai tapi belum ada absen pulang. Data impor lama dan absen yang ditolak tidak ikut.
@@ -41,7 +43,6 @@ const acaraDiPeriode = (wherePeriode) => prisma.$queryRaw`
   WHERE ${wherePeriode === "lama" ? Prisma.sql`a."checkedAt" < ${MULAI_DATA_BARU}` : Prisma.sql`a."checkedAt" >= ${MULAI_DATA_BARU}`}
   GROUP BY e.id, e.name ORDER BY MAX(a."checkedAt") DESC`;
 
-const KOL = { "--kol": "56px 1.1fr 1.3fr 110px 1.3fr 170px" };
 
 export default async function AdminPage({ searchParams }) {
   const user = await getCurrentUser();
@@ -78,13 +79,26 @@ export default async function AdminPage({ searchParams }) {
       include: { user: true, session: { include: { event: true } } },
       omit: { photo: true },
       orderBy: { checkedAt: "desc" },
-      take: 100,
+      take: MAKS_ABSEN,
     }),
     prisma.absensi.count({ where: wherePeriodeAcara }),
     prisma.absensi.count({ where: { ...wherePeriodeAcara, ...SARING.belum } }),
     prisma.absensi.count({ where: { ...wherePeriodeAcara, ...SARING.luar } }),
     prisma.absensi.count({ where: { ...wherePeriodeAcara, ...SARING.telat } }),
   ]);
+
+  // Satu kartu per crew per sesi. Urutan kartu mengikuti absen terbarunya (rows sudah terbaru dulu),
+  // isi kartu diurutkan dari absen paling awal.
+  const kelompok = [];
+  const peta = new Map();
+  for (const r of rows) {
+    const kunci = `${r.userId}-${r.sessionId}`;
+    let g = peta.get(kunci);
+    if (!g) { g = { kunci, user: r.user, session: r.session, items: [] }; peta.set(kunci, g); kelompok.push(g); }
+    g.items.push(r);
+  }
+  for (const g of kelompok) g.items.reverse();
+  const jumlahCrew = new Set(rows.map((r) => r.userId)).size;
 
   // Tautan yang mempertahankan parameter lain. Nilai kosong atau bawaan tidak ditulis.
   const url = ({ p = periode, a = acaraId, st = f, kata = q } = {}) => {
@@ -179,43 +193,65 @@ export default async function AdminPage({ searchParams }) {
       ) : (
       <>
 
-      <div className="tabel">
-        <div className="baris kop" style={KOL}>
-          <div>Foto</div><div>Crew</div><div>Acara dan sesi</div><div>Waktu</div><div>Status</div><div>Aksi</div>
-        </div>
-        {rows.length === 0 && <div className="kosong">{totalPeriode === 0 ? kosongPeriode : f === "belum" && !q ? "Semua absen di sini sudah disahkan." : "Tidak ada absen yang cocok."}</div>}
-        {rows.map((r) => (
-          <div className="baris" style={KOL} key={r.id}>
-            <div>
-              <FotoAbsen id={r.id} nama={r.user.name} ket={[
-                r.session.event.name,
-                `${r.session.jobdesc} · ${KIND[r.kind]}`,
-                fmtSingkat(r.checkedAt),
-                `${STATUS[r.status]} · ${r.distanceM} m dari titik acara`,
-              ]} />
-            </div>
-            <div className="lebar">
-              <div className="tebal">{r.user.name}</div>
-              {r.activity && <div className="meta">{r.activity}</div>}
-            </div>
-            <div className="lebar">
-              <div className="tebal">{r.session.event.name}</div>
-              <div className="meta">{r.session.jobdesc} · {KIND[r.kind]}</div>
-            </div>
-            <div>{fmtSingkat(r.checkedAt)}</div>
-            <div className="lebar">
-              <div className="lencana">
-                <span className={`badge ${nadaStatus(r.status)}`}>{STATUS[r.status]}</span>
-                <span className={`badge ${r.insideRadius ? "muted" : "bad"}`}>{r.distanceM} m</span>
-                {r.verifiedAt ? <span className="badge ok">Sah</span> : <span className="badge warn">Belum</span>}
+      {rows.length === 0 && <div className="kosong">{totalPeriode === 0 ? kosongPeriode : f === "belum" && !q ? "Semua absen di sini sudah disahkan." : "Tidak ada absen yang cocok."}</div>}
+      {kelompok.map((g) => {
+        const awal = g.items[0].checkedAt;
+        const akhir = g.items[g.items.length - 1].checkedAt;
+        const idBelum = g.items.filter((r) => !r.verifiedAt).map((r) => r.id);
+        const nTelat = g.items.filter((r) => r.status === "TERLAMBAT").length;
+        const nLuar = g.items.filter((r) => !r.insideRadius).length;
+        const rentang = g.items.length === 1 ? fmtSingkat(awal)
+          : fmtHari(awal) === fmtHari(akhir) ? `${fmtSingkat(awal)} sampai ${fmtJam(akhir)}`
+          : `${fmtSingkat(awal)} sampai ${fmtSingkat(akhir)}`;
+        return (
+          <section className="grup" key={g.kunci} aria-label={`Absen ${g.user.name}`}>
+            <div className="grup-kop">
+              <div className="grup-info">
+                <div className="grup-nama">{g.user.name}</div>
+                <div className="meta"><b>{g.session.event.name}</b> · {g.session.jobdesc}</div>
+                <div className="meta">{rentang}</div>
+                <div className="lencana">
+                  <span className="badge muted">
+                    {g.items.length} absen{idBelum.length > 0 ? `, ${idBelum.length} belum disahkan` : ""}
+                  </span>
+                  {nTelat > 0 && <span className="badge warn">{nTelat} terlambat</span>}
+                  {nLuar > 0 && <span className="badge bad">{nLuar} di luar radius</span>}
+                </div>
               </div>
-              {r.note && <div className="note">{r.note}</div>}
+              <div className="grup-aksi">
+                {idBelum.length > 0 ? <SahkanSemua ids={idBelum} /> : <span className="badge ok">Semua sah</span>}
+              </div>
             </div>
-            <div><AdminActions id={r.id} verified={!!r.verifiedAt} /></div>
-          </div>
-        ))}
-      </div>
-      <div className="meta">Menampilkan {rows.length} absen terbaru.</div>
+            <div className="grup-foto">
+              {g.items.map((r) => (
+                <div className="grup-item" key={r.id}>
+                  <FotoAbsen
+                    id={r.id} nama={g.user.name} jam={fmtJam(r.checkedAt)}
+                    ket={[
+                      `${g.session.event.name} · ${g.session.jobdesc}`,
+                      `${KIND[r.kind]} · ${fmtTanggal(r.checkedAt)}`,
+                      `${STATUS[r.status]} · ${r.distanceM} m dari titik acara`,
+                      ...(r.activity ? [`Kegiatan: ${r.activity}`] : []),
+                      ...(r.note ? [`Catatan: ${r.note}`] : []),
+                      r.verifiedAt ? "Sudah disahkan" : "Belum disahkan",
+                    ]}
+                  >
+                    <AdminActions id={r.id} verified={!!r.verifiedAt} tutupDialog />
+                  </FotoAbsen>
+                  <div className="grup-jenis">{KIND[r.kind]}</div>
+                  <div className="lencana">
+                    {r.status !== "HADIR" && <span className={`badge ${nadaStatus(r.status)}`}>{STATUS[r.status]}</span>}
+                    <span className={`badge ${r.insideRadius ? "muted" : "bad"}`}>{r.distanceM} m</span>
+                    {r.verifiedAt ? <span className="badge ok">Sah</span> : <span className="badge warn">Belum</span>}
+                  </div>
+                  {r.activity && <div className="meta">{r.activity}</div>}
+                </div>
+              ))}
+            </div>
+          </section>
+        );
+      })}
+      <div className="meta">Menampilkan {rows.length} absen dari {jumlahCrew} crew{rows.length >= MAKS_ABSEN ? ` (batas ${MAKS_ABSEN} absen terbaru)` : ""}.</div>
       </>
       )}
     </AdminShell>

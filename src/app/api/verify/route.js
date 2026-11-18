@@ -2,11 +2,27 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser, isAdmin } from "@/lib/auth";
 
+const MAKS_MASSAL = 500;
+
 export async function POST(req) {
   const user = await getCurrentUser();
   if (!isAdmin(user)) return NextResponse.json({ error: "Tidak berwenang." }, { status: 403 });
 
-  const { id, action } = await req.json().catch(() => ({}));
+  const { id, ids, action } = await req.json().catch(() => ({}));
+
+  // Pengesahan banyak sekaligus: hanya "sahkan", dan hanya absen yang belum disahkan yang disentuh.
+  if (ids !== undefined) {
+    if (action !== "sahkan") return NextResponse.json({ error: "Aksi massal hanya untuk sahkan." }, { status: 400 });
+    const sah = Array.isArray(ids) && ids.length > 0 && ids.length <= MAKS_MASSAL
+      && ids.every((n) => Number.isInteger(n) && n > 0);
+    if (!sah) return NextResponse.json({ error: `ids harus berisi 1 sampai ${MAKS_MASSAL} bilangan bulat positif.` }, { status: 400 });
+    const hasil = await prisma.absensi.updateMany({
+      where: { id: { in: ids }, verifiedAt: null },
+      data: { verifiedById: user.id, verifiedAt: new Date() },
+    });
+    return NextResponse.json({ ok: true, jumlah: hasil.count });
+  }
+
   const row = await prisma.absensi.findUnique({ where: { id: Number(id) } });
   if (!row) return NextResponse.json({ error: "Data absen tidak ditemukan." }, { status: 404 });
 

@@ -255,3 +255,26 @@ summary::-webkit-details-marker { display: none; }
 .foto-ket span { display: block; opacity: 0.85; }
 .foto-tutup { height: 40px; padding: 0 22px; border-radius: 999px; border: 0; background: #fff; color: var(--text); font-size: 14px; font-weight: 600; cursor: pointer; }
 @media (min-width: 768px) { .foto-besar { max-height: 78vh; } }
+
+/* Verifikasi: satu kartu per crew per sesi, isinya semua foto absen. */
+.grup { background: var(--card); border-radius: 24px; padding: 16px 18px; margin-bottom: 14px; }
+.grup-kop { display: flex; gap: 10px 16px; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; margin-bottom: 12px; }
+.grup-info { min-width: 0; flex: 1 1 240px; display: grid; gap: 4px; }
+.grup-nama { font-size: 17px; font-weight: 600; }
+.grup-aksi { display: flex; align-items: center; gap: 8px; flex: none; }
+.sahkan-semua { padding: 10px 18px; font-size: 14px; min-height: 40px; }
+.grup-foto { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 12px; }
+.grup-item { display: grid; gap: 6px; align-content: start; min-width: 0; }
+.grup-item .lencana { gap: 4px; }
+.grup-item .badge { font-size: 11px; padding: 3px 8px; }
+.grup-jenis { font-size: 13px; font-weight: 600; }
+.thumb-btn-grup { position: relative; width: 100%; aspect-ratio: 1; border-radius: 16px; overflow: hidden; }
+.thumb.thumb-grup { width: 100%; height: 100%; border-radius: 16px; }
+.thumb-jam { position: absolute; left: 6px; bottom: 6px; background: rgba(8, 12, 22, 0.78); color: #fff; font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; font-variant-numeric: tabular-nums; }
+.foto-aksi { display: flex; justify-content: center; }
+@media (max-width: 520px) {
+  .grup { padding: 14px; border-radius: 20px; }
+  .grup-aksi { width: 100%; }
+  .grup-aksi .sahkan-semua { width: 100%; min-height: 44px; }
+  .grup-foto { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

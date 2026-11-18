@@ -4,7 +4,8 @@ import { useRef, useState } from "react";
 
 // Thumbnail foto absen yang bisa diklik. Foto besar tampil di <dialog> modal:
 // Esc, tombol Tutup, dan klik di latar sama-sama menutupnya.
-export default function FotoAbsen({ id, nama, ket }) {
+// jam (opsional) tampil sebagai label kecil di pojok foto kecil. children (opsional) tampil di bawah keterangan foto besar.
+export default function FotoAbsen({ id, nama, ket, jam, children }) {
   const dlg = useRef(null);
   const [buka, setBuka] = useState(false);
 
@@ -16,9 +17,10 @@ export default function FotoAbsen({ id, nama, ket }) {
 
   return (
     <>
-      <button type="button" className="thumb-btn" aria-label={`Perbesar foto absen ${nama}`} onClick={bukaFoto}>
+      <button type="button" className={jam ? "thumb-btn thumb-btn-grup" : "thumb-btn"} aria-label={`Perbesar foto absen ${nama}`} onClick={bukaFoto}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img className="thumb" loading="lazy" src={`/api/foto/${id}`} alt="" />
+        <img className={jam ? "thumb thumb-grup" : "thumb"} loading="lazy" src={`/api/foto/${id}`} alt="" />
+        {jam && <span className="thumb-jam">{jam}</span>}
       </button>
       {buka && (
         <dialog
@@ -33,6 +35,7 @@ export default function FotoAbsen({ id, nama, ket }) {
               <b>{nama}</b>
               {ket.map((t, i) => <span key={i}>{t}</span>)}
             </div>
+            {children && <div className="foto-aksi">{children}</div>}
             <button type="button" className="foto-tutup" onClick={() => dlg.current?.close()}>Tutup</button>
           </div>
         </dialog>
