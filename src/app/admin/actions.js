@@ -9,6 +9,7 @@ import { dariInput } from "@/lib/waktu";
 import { namaKapital } from "@/lib/nama";
 import { JEDA_MENIT, JEDA_MIN, JEDA_MAKS } from "@/lib/aturan";
 import { hapusCache, KUNCI_SESI_AKTIF } from "@/lib/cache";
+import { TANPA_FOTO } from "@/lib/foto";
 
 async function wajibAdmin() {
   const user = await getCurrentUser();
@@ -168,9 +169,6 @@ export async function simpanCrew(f) {
   else await prisma.user.create({ data });
   kembali(path, "ok", id ? `Akun ${name} berhasil disimpan.` : `Akun ${name} berhasil dibuat.`);
 }
-
-// Gambar abu-abu kecil sebagai pengganti foto untuk absen yang dicatat admin.
-const TANPA_FOTO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAACXBIWXMAAAPoAAAD6AG1e1JrAAAAEUlEQVQImWN49OIDVsQwtCQAK0Sugatr8jQAAAAASUVORK5CYII=";
 
 // Crew lupa absen pulang: admin mencatatkan pulang di jam selesai shift, tanpa foto, langsung sah.
 export async function catatPulang(f) {

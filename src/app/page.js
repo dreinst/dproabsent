@@ -24,15 +24,18 @@ export default async function CrewHome() {
   // Owner dan superadmin kadang turun jadi crew, jadi mereka juga boleh absen di sini.
   const admin = isAdmin(user);
 
-  // Daftar sesi acara aktif sama untuk semua crew, jadi disimpan di cache 15 detik.
-  // Cache dikosongkan oleh aksi admin yang mengubah acara atau sesi (src/app/admin/actions.js).
+  // Daftar sesi acara aktif sama untuk semua crew, jadi disimpan di cache 15 detik. Isinya ikut membawa
+  // daftar kapten tiap acara, untuk tombol Panel kapten tanpa query tambahan per crew.
+  // Cache dikosongkan oleh aksi admin yang mengubah acara, sesi, atau kapten (src/app/admin/actions.js, aksi-kapten.js).
   const daftarSesi = await ambilCache(KUNCI_SESI_AKTIF, 15, () =>
     prisma.session.findMany({
       where: { event: { active: true } },
-      include: { event: true },
+      include: { event: { include: { kapten: { select: { userId: true } } } } },
       orderBy: { startAt: "asc" },
     })
   );
+  // Kapten di acara aktif mendapat tombol Panel kapten. Halaman /kapten sendiri memeriksa haknya langsung ke database.
+  const kapten = !admin && daftarSesi.some((s) => s.event.kapten?.some((k) => k.userId === user.id));
   // Absen milik crew yang login selalu diambil langsung dari database.
   const absenSaya = daftarSesi.length
     ? await prisma.absensi.findMany({
@@ -60,6 +63,8 @@ export default async function CrewHome() {
         <div className="crew-hero-isi">
           <div className="judul">
             <h1>Absen saya</h1>
+            {/* Di bawah judul, bukan di bilah atas, supaya tetap muat satu baris di HP selebar 360 px. */}
+            {kapten && <Link href="/kapten" className="tombol-kapten">Panel kapten</Link>}
           </div>
           <FotoProfil id={user.id} nama={user.name} avatar={user.avatar} />
         </div>
@@ -162,6 +167,7 @@ function SesiBlok({ s, now }) {
           insideRadius: a.insideRadius,
           activity: a.activity,
           note: a.note,
+          otomatis: a.otomatis,
         }))}
       />
     </div>

@@ -27,6 +27,9 @@ async function bolehLangsung(jenis, asli) {
 
 export class FotoError extends Error {}
 
+// Gambar abu-abu kecil sebagai pengganti foto untuk absen yang dicatat admin atau sistem (pulang otomatis).
+export const TANPA_FOTO = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAACXBIWXMAAAPoAAAD6AG1e1JrAAAAEUlEQVQImWN49OIDVsQwtCQAK0Sugatr8jQAAAAASUVORK5CYII=";
+
 // Terima data URL dari kamera. JPEG bersih dari aplikasi disimpan langsung; selain itu dikecilkan (maks 720 px)
 // dan diubah ke WebP kualitas 60 dengan metadata (EXIF, lokasi bawaan kamera) dibuang. Isi berkas selalu
 // diperiksa oleh sharp, jadi bukan hanya mengandalkan awalan "data:image/".

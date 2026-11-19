@@ -74,7 +74,8 @@ export default async function AdminPage({ searchParams }) {
   const [rows, semua, belum, luar, telat] = await Promise.all([
     prisma.absensi.findMany({
       where: { AND: [wherePeriodeAcara, f === "pulang" ? { id: { in: idPulang } } : SARING[f] || {}, cari] },
-      include: { user: true, session: { include: { event: true } } },
+      // verifiedBy untuk keterangan "Disahkan oleh" dan "Ditolak oleh" di tiap foto.
+      include: { user: true, session: { include: { event: true } }, verifiedBy: { select: { name: true, role: true } } },
       omit: { photo: true },
       orderBy: { checkedAt: "desc" },
       take: MAKS_ABSEN,

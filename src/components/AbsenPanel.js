@@ -30,6 +30,8 @@ export default function AbsenPanel({ session, existing, lastAt }) {
 
   const hasMasuk = existing.some((e) => e.kind === "MASUK");
   const hasPulang = existing.some((e) => e.kind === "PULANG");
+  // Pulang dicatat sistem karena crew tidak absen pulang sampai 1 jam setelah sesi selesai.
+  const pulangOtomatis = existing.some((e) => e.kind === "PULANG" && e.otomatis);
   const berjalan = hasMasuk && !hasPulang;
 
   // Hitung mundur ke titik cek berikutnya: jarak sesi (session.jedaMenit) sejak absen terakhir, lalu batas BATAS_MENIT.
@@ -214,7 +216,11 @@ export default function AbsenPanel({ session, existing, lastAt }) {
       {ok && <div className="ok-msg" style={{ margin: "10px 0" }}>{ok}</div>}
 
       {hasPulang ? (
-        <div className="meta" style={{ margin: "8px 0" }}>Sesi selesai. Absen Anda sudah lengkap.</div>
+        pulangOtomatis ? (
+          <div className="pulang-otomatis">Anda tidak melakukan absen pulang. Pulang dicatat otomatis.</div>
+        ) : (
+          <div className="meta" style={{ margin: "8px 0" }}>Sesi selesai. Absen Anda sudah lengkap.</div>
+        )
       ) : (
         <div className="tumpuk">
           {shiftSelesai && <div className="hitung pulang"><span>Shift telah selesai</span><b>Silakan absen pulang</b></div>}
@@ -243,9 +249,13 @@ export default function AbsenPanel({ session, existing, lastAt }) {
                     {e.activity ? ` · ${e.activity}` : ""}
                   </div>
                 </div>
-                <span className={`badge ${e.insideRadius ? nadaStatus(e.status) : "bad"}`}>
-                  {e.insideRadius ? STATUS[e.status] : "Di luar radius"}
-                </span>
+                {e.otomatis ? (
+                  <span className="badge warn">Tidak absen pulang</span>
+                ) : (
+                  <span className={`badge ${e.insideRadius ? nadaStatus(e.status) : "bad"}`}>
+                    {e.insideRadius ? STATUS[e.status] : "Di luar radius"}
+                  </span>
+                )}
               </div>
               {e.note && <div className="note" style={{ margin: "-2px 0 8px" }}>{e.note}</div>}
             </div>
