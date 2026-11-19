@@ -5,6 +5,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { distanceMeters } from "@/lib/geo";
 import { simpanFoto, hapusFoto, FotoError, MAKS_BYTE } from "@/lib/foto";
 import { jedaSesi, BATAS_MENIT, TOLERANSI_MS, PULANG_TELAT_MENIT } from "@/lib/aturan";
+import { fmtSingkat } from "@/lib/waktu";
 
 const KINDS = ["MASUK", "CHECKPOINT", "PULANG"];
 
@@ -39,6 +40,14 @@ export async function POST(req) {
   }
 
   const now = new Date();
+
+  // Absen masuk baru dibuka pada jam mulai sesi. TOLERANSI_MS menampung selisih kecil antara jam HP dan server.
+  if (kind === "MASUK" && now.getTime() < session.startAt.getTime() - TOLERANSI_MS) {
+    return NextResponse.json(
+      { error: `Sesi ini belum dimulai. Absen masuk dibuka pada ${fmtSingkat(session.startAt)} WIB.` },
+      { status: 409 }
+    );
+  }
 
   // Titik cek mengikuti jarak sesi (jedaSesi), dihitung sejak absen terakhir (masuk atau titik cek sebelumnya).
   let terakhir = null;

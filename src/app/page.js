@@ -21,8 +21,8 @@ function lastAt(absensi) {
 export default async function CrewHome() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
-  // Owner dan superadmin kadang turun jadi crew, jadi mereka juga boleh absen di sini.
-  const admin = isAdmin(user);
+  // Akun owner dan superadmin hanya untuk panel admin. Absen selalu lewat akun crew bernomor HP.
+  if (isAdmin(user)) redirect("/admin");
 
   // Daftar sesi acara aktif sama untuk semua crew, jadi disimpan di cache 15 detik. Isinya ikut membawa
   // daftar kapten tiap acara, untuk tombol Panel kapten tanpa query tambahan per crew.
@@ -35,7 +35,7 @@ export default async function CrewHome() {
     })
   );
   // Kapten di acara aktif mendapat tombol Panel kapten. Halaman /kapten sendiri memeriksa haknya langsung ke database.
-  const kapten = !admin && daftarSesi.some((s) => s.event.kapten?.some((k) => k.userId === user.id));
+  const kapten = daftarSesi.some((s) => s.event.kapten?.some((k) => k.userId === user.id));
   // Absen milik crew yang login selalu diambil langsung dari database.
   const absenSaya = daftarSesi.length
     ? await prisma.absensi.findMany({
@@ -56,7 +56,6 @@ export default async function CrewHome() {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img className="brand-logo" src="/logo-dpro.svg" alt="D'Production" />
           <div className="row">
-            {admin && <Link href="/admin" className="btn-ghost btn-kecil">Panel admin</Link>}
             <LogoutButton />
           </div>
         </nav>
@@ -152,6 +151,8 @@ function SesiBlok({ s, now }) {
       <AbsenPanel
         session={{
           id: s.id,
+          startAt: s.startAt.getTime(),
+          mulaiTeks: fmtSingkat(s.startAt),
           endAt: s.endAt.getTime(),
           jedaMenit: jedaSesi(s),
           eventName: s.event.name,

@@ -7,12 +7,13 @@ Panduan ini untuk superadmin. Bagian crew bisa diteruskan ke tim lapangan.
 ## Masuk
 
 1. Buka web absen di HP. Kamera dan lokasi hanya jalan lewat HTTPS, jadi pakai alamat di atas.
-2. Isi Nomor HP yang terdaftar, diketik seperti biasa dengan awalan 08. Contoh: `081234564321`. Awalan 62 atau +62 juga diterima.
-3. Isi password, lalu tekan Masuk.
+2. Baca "Panduan absen" di halaman masuk dan centang ketujuh poinnya. Tombol Masuk baru berfungsi setelah semua poin dicentang. Centangnya tidak disimpan, jadi setiap kali masuk crew mencentang ulang.
+3. Isi Nomor HP yang terdaftar, diketik seperti biasa dengan awalan 08. Contoh: `081234564321`. Awalan 62 atau +62 juga diterima.
+4. Isi password, lalu tekan Masuk.
 
 Password crew diberikan kantor.
 
-Owner dan superadmin tidak perlu nomor: di kolom yang sama, isi `owner` atau `superadmin`, lalu password. Tidak ada tombol pilihan, web langsung mengenali nomor atau nama.
+Owner dan superadmin tidak perlu nomor: di kolom yang sama, isi `owner` atau `superadmin`, lalu password. Tidak ada tombol pilihan, web langsung mengenali nomor atau nama. Kalau yang diisi nama, centang panduan tidak diwajibkan.
 
 Salah password 5 kali membuat nomor atau nama itu terkunci 15 menit.
 
@@ -20,7 +21,7 @@ Login crew berlaku 30 hari, jadi crew cukup masuk sekali sebelum tiba di lokasi.
 
 Di halaman masuk ada blok "Perlu bantuan?" untuk langsung menghubungi Andrew lewat WhatsApp: Nomor belum terdaftar, Kendala password, atau Kendala lain. Kalau masuk gagal, tombol yang sesuai juga muncul di bawah pesan galatnya.
 
-Crew masuk ke halaman absen. Owner dan superadmin masuk ke halaman admin.
+Crew masuk ke halaman absen. Owner dan superadmin masuk ke halaman admin dan tidak bisa membuka halaman absen, jadi siapa pun yang ikut bertugas absen dengan akun crew bernomor HP.
 
 ## Untuk crew
 
@@ -28,7 +29,7 @@ Di bagian atas ada foto profil crew. Foto awalnya diambil dari foto profil Whats
 
 Layar crew punya satu tombol besar yang berganti sendiri:
 
-1. Absen masuk saat tiba di lokasi.
+1. Absen masuk, yang baru terbuka pada jam mulai sesi. Sebelum itu tombolnya terkunci dan layar menampilkan jam dibukanya, lalu hitung mundur dalam satu jam terakhir.
 2. Absen progres sesuai jarak sesinya (bawaan 60 menit) sejak absen terakhir. Jaraknya tertulis di kartu sesi. Layar menampilkan hitung mundurnya. Saat waktunya tiba, crew punya 5 menit. Lewat dari itu absen tetap diterima tapi ditandai terlambat.
 3. Absen pulang, yang baru terbuka saat jam selesai sesi.
 

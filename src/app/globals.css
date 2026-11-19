@@ -272,7 +272,7 @@ button.sakelar::before { content: ""; position: absolute; inset: -8px -4px; }
 }
 .hitung span { font-size: 14px; font-weight: 500; color: var(--muted); }
 .hitung b { font-size: clamp(2.75rem, 12vw, 3.5rem); font-weight: 600; letter-spacing: -0.03em; line-height: 1; font-variant-numeric: tabular-nums; }
-.hitung.pulang b, .hitung.telat b { font-size: clamp(1.75rem, 7vw, 2.25rem); letter-spacing: -0.025em; line-height: 1.1; }
+.hitung.pulang b, .hitung.telat b, .hitung.mulai b { font-size: clamp(1.75rem, 7vw, 2.25rem); letter-spacing: -0.025em; line-height: 1.1; }
 .hitung.saatnya { background: #fdecec; }
 .hitung.saatnya span, .hitung.saatnya b, .hitung.telat b { color: var(--red); }
 .jalan .hitung { background: rgba(255, 255, 255, 0.08); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16), var(--kaca-kilau); }

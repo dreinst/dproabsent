@@ -25,7 +25,6 @@ export default function AdminShell({ user, tab, title, sub, aksi, pesan = {}, ch
         {MENU.map(([href, label]) => (
           <Link key={href} href={href} className={href === tab ? "menu on" : "menu"}>{label}</Link>
         ))}
-        <Link href="/" className="menu">Absen saya</Link>
         <div className="akun">
           <b>{user.name}</b>
           <span>{PERAN[user.role]}</span>
@@ -33,7 +32,7 @@ export default function AdminShell({ user, tab, title, sub, aksi, pesan = {}, ch
         </div>
       </aside>
       <MenuAdmin
-        menu={[...MENU.map(([href, label]) => [href, label, href === tab]), ["/", "Absen saya", false]]}
+        menu={MENU.map(([href, label]) => [href, label, href === tab])}
         nama={user.name} peran={PERAN[user.role]}
       >
         <LogoutButton />
