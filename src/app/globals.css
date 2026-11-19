@@ -661,3 +661,85 @@ body:has(.menu-hp[open]) { overflow: hidden; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
 }
+
+/* Kapten dan pulang otomatis */
+
+/* Detail acara: kolom kanan menumpuk kartu Sesi tugas dan Kapten acara. */
+.kolom-tumpuk { display: grid; gap: var(--kisi); align-content: start; min-width: 0; }
+.kapten-kartu .sub { margin-bottom: 16px; }
+.kapten-kosong { background: var(--bg); border-radius: 18px; padding: 16px 18px; font-size: 14px; color: var(--muted); }
+.kapten-daftar { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.kapten-baris { display: flex; align-items: center; gap: 12px; min-width: 0; background: var(--bg); border-radius: 18px; padding: 10px 10px 10px 12px; }
+.kapten-baris b { display: block; font-size: 15px; font-weight: 600; line-height: 1.3; overflow-wrap: anywhere; }
+.kapten-baris .meta { display: block; font-size: 13px; }
+.kapten-baris form { margin: 0; flex: none; }
+.kapten-catatan { margin: 16px 0 0; }
+
+/* Pilihan kapten: kotak cari dan daftar crew aktif yang bisa digulir. */
+.pilih-kapten label[for] { margin-top: 20px; }
+.pilih-kapten-daftar {
+  display: grid; gap: 2px; margin-top: 10px; padding: 6px; max-height: 288px; overflow-y: auto; overscroll-behavior: contain;
+  border-radius: 18px; background: var(--bg);
+}
+.pilih-kapten-item {
+  position: relative; display: flex; align-items: center; gap: 12px; min-height: 48px; margin: 0; padding: 0 14px;
+  border-radius: 14px; font-size: 15px; font-weight: 500; line-height: 1.3; cursor: pointer; transition: background-color 0.15s;
+}
+.pilih-kapten-item:hover { background: #fff; }
+.pilih-kapten-item input { position: absolute; opacity: 0; pointer-events: none; }
+.pilih-kapten-item:has(input:focus-visible) { outline: 2px solid var(--biru); outline-offset: -2px; }
+.pilih-kapten-item.on { background: var(--navy); color: #fff; }
+.pilih-kapten-item.on .meta { color: rgba(255, 255, 255, 0.75); }
+.pilih-kapten-item .meta { flex: none; font-variant-numeric: tabular-nums; }
+.pilih-kapten-daftar .kosong { padding: 18px; font-size: 14px; }
+.pilih-kapten-kaki { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px 14px; margin-top: 12px; }
+.pilih-kapten-kaki .meta { min-width: 0; overflow-wrap: anywhere; }
+
+/* Keputusan per foto dan pesan galat aksi Sahkan, Tolak, atau Batalkan pengesahan. */
+.grup-oleh { font-size: 12.5px; line-height: 1.4; overflow-wrap: anywhere; }
+.foto-aksi { flex-wrap: wrap; row-gap: 10px; }
+.foto-aksi-ket { margin: 0; font-size: 14px; line-height: 1.5; color: rgba(255, 255, 255, 0.82); }
+.aksi-galat { margin: 0; font-size: 13px; line-height: 1.45; color: #b42318; }
+.foto-aksi .aksi-galat { flex: 1 1 100%; color: #ffd0cc; }
+.grup-aksi { flex-wrap: wrap; justify-content: flex-end; }
+.grup-aksi .aksi-galat { flex: 1 1 100%; max-width: 320px; text-align: right; }
+
+/* Panel kapten: hero navy seperti halaman crew, lalu pilihan acara, ringkasan sesi, saringan, dan kartu absen. */
+.kapten-hal .crew-hero .judul p { max-width: 760px; }
+.kapten-hal .segar-otomatis { margin-top: 18px; }
+.kapten-isi { min-width: 0; }
+.kapten-isi > .kosong { background: #fff; border-radius: var(--r-kartu); margin-bottom: 16px; }
+.ringkasan-sesi { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 380px), 1fr)); gap: 12px; margin-bottom: 24px; }
+.ringkasan-sesi > .kosong { grid-column: 1 / -1; background: #fff; border-radius: var(--r-kartu); }
+.ringkasan-baris { display: grid; gap: 12px; align-content: start; min-width: 0; padding: 18px 20px; border-radius: 22px; background: #fff; }
+.ringkasan-judul b { display: block; font-size: 17px; font-weight: 600; letter-spacing: -0.01em; line-height: 1.3; overflow-wrap: anywhere; }
+.ringkasan-judul .meta { display: block; margin-top: 2px; }
+.ringkasan-angka { display: flex; flex-wrap: wrap; gap: 8px; }
+.ringkasan-angka span {
+  display: inline-flex; align-items: baseline; gap: 6px; padding: 6px 12px; border-radius: 999px;
+  background: var(--bg); font-size: 13px; color: var(--muted);
+}
+.ringkasan-angka b { font-size: 16px; font-weight: 600; color: var(--text); font-variant-numeric: tabular-nums; }
+.ringkasan-angka .perlu { background: #fff4d6; color: #8a5a00; }
+.ringkasan-angka .perlu b { color: #8a5a00; }
+
+/* Absen tanpa foto (pulang otomatis): kotak pengganti di foto kecil dan foto besar. */
+.thumb-kosong { display: grid; place-items: center; background: var(--kosong); color: var(--muted); font-size: 13px; font-weight: 500; text-align: center; }
+.foto-kosong {
+  display: grid; place-items: center; flex: none; width: min(100%, 360px); aspect-ratio: 4 / 3; padding: 16px;
+  border-radius: var(--r-besar); background: rgba(255, 255, 255, 0.06); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+  color: rgba(255, 255, 255, 0.75); font-size: 15px; font-weight: 500; text-align: center;
+}
+@media (min-width: 900px) { .foto-kosong { width: 360px; justify-self: end; } }
+
+/* Halaman crew: tombol Panel kapten di bawah judul hero navy. */
+.tombol-kapten {
+  display: inline-flex; align-items: center; justify-content: center; margin-top: 18px; min-height: 44px; padding: 0 22px;
+  border-radius: 999px; background: #fff; color: var(--navy); font-size: 15px; font-weight: 600; line-height: 1.2; text-decoration: none;
+  transition: background-color 0.2s ease-out, scale 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.tombol-kapten:hover { background: var(--langit); }
+.tombol-kapten:active { scale: 0.97; }
+
+/* Halaman crew: sesi yang pulangnya dicatat sistem. */
+.pulang-otomatis { margin: 8px 0; padding: 12px 16px; border-radius: 16px; background: #fff4d6; color: #8a5a00; font-size: 14px; font-weight: 500; line-height: 1.45; }

@@ -53,10 +53,16 @@ export default async function RiwayatPage() {
               {r.session.jobdesc} · {KIND[r.kind]} · {fmtTanggal(r.checkedAt)}
             </div>
             <div className="lencana">
-              <span className={`badge ${nadaStatus(r.status)}`}>{STATUS[r.status]}</span>
-              <span className={`badge ${r.insideRadius ? "muted" : "bad"}`}>
-                {r.distanceM} m{!r.insideRadius && ", di luar radius"}
-              </span>
+              {r.otomatis ? (
+                <span className="badge warn">Tidak absen pulang</span>
+              ) : (
+                <>
+                  <span className={`badge ${nadaStatus(r.status)}`}>{STATUS[r.status]}</span>
+                  <span className={`badge ${r.insideRadius ? "muted" : "bad"}`}>
+                    {r.distanceM} m{!r.insideRadius && ", di luar radius"}
+                  </span>
+                </>
+              )}
               {r.verifiedAt ? <span className="badge ok">Sah</span> : <span className="badge warn">Belum disahkan</span>}
             </div>
             {r.activity && <div className="meta" style={{ marginTop: 6 }}>Yang dikerjakan: {r.activity}</div>}

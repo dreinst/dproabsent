@@ -61,6 +61,22 @@ export async function POST(req) {
     return NextResponse.json({ error: "Absen pulang baru dapat dilakukan setelah shift selesai." }, { status: 409 });
   }
 
+  // Absen pulang hanya sekali per sesi. Halaman yang belum dimuat ulang tidak boleh menambah pulang kedua
+  // setelah pulang dicatat sistem (1 jam setelah sesi selesai) atau oleh admin.
+  if (kind === "PULANG") {
+    const sudah = await prisma.absensi.findFirst({
+      where: { sessionId: session.id, userId: user.id, kind: "PULANG" },
+      select: { otomatis: true },
+    });
+    if (sudah) {
+      return NextResponse.json({
+        error: sudah.otomatis
+          ? "Anda tidak melakukan absen pulang sampai 1 jam setelah sesi selesai, sehingga pulang sudah dicatat otomatis oleh sistem."
+          : "Absen pulang untuk sesi ini sudah tercatat.",
+      }, { status: 409 });
+    }
+  }
+
   const photoHash = createHash("sha256").update(photo).digest("hex");
   // Tolak foto yang persis sama dalam sesi yang sama (cegah absen pakai foto orang lain).
   const dup = await prisma.absensi.findFirst({

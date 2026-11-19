@@ -2,8 +2,9 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser, isAdmin } from "@/lib/auth";
 import { bacaFoto } from "@/lib/foto";
+import { kaptenDiSesi } from "@/lib/kapten";
 
-// Foto absen hanya boleh dilihat pemiliknya dan admin (owner/superadmin).
+// Foto absen hanya boleh dilihat pemiliknya, admin (owner/superadmin), dan kapten acara tempat absen itu.
 export async function GET(_req, { params }) {
   const user = await getCurrentUser();
   if (!user) return new NextResponse("Belum masuk.", { status: 401 });
@@ -11,11 +12,10 @@ export async function GET(_req, { params }) {
   const { id } = await params;
   const row = await prisma.absensi.findUnique({
     where: { id: Number(id) || 0 },
-    select: { userId: true, photo: true },
+    select: { userId: true, sessionId: true, photo: true },
   });
-  if (!row || (row.userId !== user.id && !isAdmin(user))) {
-    return new NextResponse("Tidak ditemukan.", { status: 404 });
-  }
+  const boleh = row && (row.userId === user.id || isAdmin(user) || (await kaptenDiSesi(user.id, row.sessionId)));
+  if (!boleh) return new NextResponse("Tidak ditemukan.", { status: 404 });
 
   const foto = await bacaFoto(row.photo);
   if (!foto) return new NextResponse("Foto tidak ada.", { status: 404 });
