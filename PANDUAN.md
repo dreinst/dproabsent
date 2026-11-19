@@ -53,6 +53,25 @@ Jam selesai sesi menentukan kapan tombol pulang muncul, jadi isi dengan jam sele
 
 Crew yang lupa absen pulang muncul di menu Verifikasi, tab "Belum pulang". Tombol "Catat pulang" mencatatkan pulangnya di jam selesai shift, tanpa foto, dan langsung sah. Tombol ini tetap bisa dipakai setelah acaranya dinonaktifkan.
 
+## Kapten
+
+Owner atau superadmin menunjuk kapten di halaman detail acara, bagian "Kapten acara". Satu acara boleh punya lebih dari satu kapten, dan kapten bisa diganti kapan saja. Kapten tetap absen seperti crew.
+
+Kapten membuka "Panel kapten" dari halaman absennya. Di sana kapten mengesahkan atau menolak absen crew di acara yang dipegangnya, termasuk lewat tombol "Sahkan semua". Kapten tidak bisa memutuskan absen dirinya sendiri, kapten lain, owner, atau superadmin; absen tersebut diputuskan owner atau superadmin. Kapten hanya bisa membatalkan pengesahan yang ia buat sendiri. Di menu Verifikasi, setiap absen menampilkan siapa yang mengesahkan atau menolak, dengan tanda "(Kapten)" bila diputuskan kapten. Owner dan superadmin tetap bisa mengubah semua keputusan.
+
+## Pulang otomatis
+
+Crew yang belum absen pulang sampai 1 jam setelah jam selesai sesi dicatat pulang otomatis oleh sistem pada jam selesai sesi, dengan keterangan "Tidak absen pulang". Absen ini belum disahkan; kapten atau admin yang memutuskan. Sebelum 1 jam lewat, crew masih bisa absen pulang sendiri. Absen pulang kedua untuk sesi yang sama ditolak.
+
+## Upah dan slip gaji
+
+Menu Upah menampilkan rekap upah per acara, unduhan CSV, dan slip upah per orang yang bisa dicetak atau disimpan sebagai PDF. Tarif bisa diubah owner atau superadmin lewat tombol "Ubah tarif". Tarif berlaku untuk semua acara, termasuk rekap acara lama.
+
+- Crew dibayar per jam (awal Rp15.000). Jam yang dibayar hanya waktu kerja yang terbukti lewat absen yang sudah disahkan. Setiap absen yang sah membayar rentang sejak absen sebelumnya, paling lama sebesar jarak absen progres sesi ditambah 5 menit, dan dihitung di dalam jadwal sesi. Waktu tanpa absen progres, termasuk lembur tanpa progres, tidak dibayar. Lembur yang direncanakan dicatat dengan memperpanjang jam selesai sesi.
+- Waktu kerja di atas 8 jam per sesi ditampilkan sebagai lembur dan dibayar dengan tarif per jam yang sama.
+- Absen yang ditolak tidak dihitung. Sesi dengan absen masuk yang ditolak tidak dibayar. Absen yang belum disahkan belum dihitung dan tampil di kolom "Menunggu".
+- Kapten dibayar per hari (awal Rp200.000) untuk setiap tanggal ia punya absen masuk yang sah di acara yang dipegangnya.
+
 ## Kalau ada masalah
 
 - Lokasi tidak terbaca: nyalakan GPS dan izinkan lokasi untuk browser, lalu muat ulang halaman.
