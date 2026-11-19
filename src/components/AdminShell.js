@@ -7,6 +7,7 @@ const MENU = [
   ["/admin", "Verifikasi"],
   ["/admin/acara", "Acara"],
   ["/admin/crew", "Crew"],
+  ["/admin/upah", "Upah"],
 ];
 const PERAN = { OWNER: "Owner", SUPERADMIN: "Superadmin" };
 

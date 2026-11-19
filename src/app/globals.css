@@ -661,3 +661,122 @@ body:has(.menu-hp[open]) { overflow: hidden; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
 }
+
+/* Upah dan slip gaji */
+.u-aksi { gap: 8px; }
+.u-aksi > a { min-height: 44px; }
+.u-pesan { background: #fff4d6; color: #8a5a00; padding: 14px 18px; border-radius: 18px; font-size: 14px; line-height: 1.45; margin-bottom: 16px; }
+.u-ringkas { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 8px 0 14px; }
+.u-kotak { display: grid; gap: 4px; align-content: start; min-width: 0; padding: 18px 20px; border-radius: var(--r-kartu); background: #fff; }
+.u-kotak span { font-size: 13px; font-weight: 500; color: var(--muted); }
+.u-kotak b { font-size: 22px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.2; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.u-kotak small { font-size: 13px; line-height: 1.4; color: var(--muted); }
+.u-kotak a { color: inherit; font-weight: 600; }
+.u-kotak.utama { background: var(--navy-blok); color: #fff; }
+.u-kotak.utama span, .u-kotak.utama small { color: rgba(255, 255, 255, 0.78); }
+.u-kotak.warn { background: #fff4d6; }
+.u-kotak.warn span, .u-kotak.warn small, .u-kotak.warn b { color: #8a5a00; }
+.u-tarif { margin: 0 0 14px; }
+
+.tabel-upah { padding-bottom: 0; }
+.tabel-upah .baris { gap: 12px; padding: 14px 24px; }
+.tabel-upah .kanan, .u-angka, .u-upah, .u-slip { text-align: right; }
+.u-fakta { display: contents; }
+.u-angka, .u-upah { font-variant-numeric: tabular-nums; }
+.u-upah { font-weight: 600; white-space: nowrap; color: var(--text); }
+.u-nama { display: flex; align-items: center; gap: 12px; min-width: 0; color: var(--text); }
+.u-nama-teks { display: grid; gap: 4px; justify-items: start; min-width: 0; }
+.u-nama-teks b { font-weight: 600; line-height: 1.3; overflow-wrap: anywhere; }
+.u-peran { font-size: 13px; color: var(--muted); }
+.u-catatan { grid-column: 1 / -1; margin: -4px 0 0 48px; font-size: 13px; line-height: 1.45; color: #8a5a00; }
+.tabel-upah .u-total, .tabel-upah .u-total:hover { background: var(--bg); font-weight: 600; }
+.u-cara { margin-top: 16px; }
+.u-cara summary { display: flex; align-items: center; gap: 6px; min-height: 28px; font-size: 16px; font-weight: 600; }
+.u-cara summary::after {
+  content: ""; width: 8px; height: 8px; flex: none; margin-left: 4px;
+  border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: translateY(-2px) rotate(45deg);
+}
+.u-cara[open] summary::after { transform: translateY(2px) rotate(-135deg); }
+.u-cara ul { margin: 12px 0 0; padding-left: 20px; font-size: 14.5px; line-height: 1.6; color: var(--muted); }
+
+/* Di bawah 1200 px kolomnya tidak muat, jadi setiap orang tampil sebagai kartu: nama dan upah di atas,
+   fakta angka berlabel di bawahnya, lalu catatan. */
+@media (max-width: 1199px) {
+  .u-ringkas { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .tabel-upah .baris.kop { display: none; }
+  .tabel-upah .baris.kop + .baris { border-top: 0; }
+  .tabel-upah .baris {
+    display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px 16px; align-items: center;
+    padding: 16px 20px; font-size: 14px; color: var(--text);
+  }
+  .tabel-upah .u-nama { grid-column: 1; grid-row: 1; font-size: 16px; }
+  .tabel-upah .u-upah { grid-column: 2; grid-row: 1; font-size: 16px; }
+  .tabel-upah .u-fakta { grid-column: 1; grid-row: 2; display: flex; flex-wrap: wrap; gap: 4px 16px; }
+  .tabel-upah .u-slip { grid-column: 2; grid-row: 2; }
+  .tabel-upah .u-catatan { grid-column: 1 / -1; grid-row: 3; margin: 0; }
+  .tabel-upah .u-angka { text-align: left; }
+  .tabel-upah .u-angka::before { content: attr(data-label) " "; color: var(--muted); font-weight: 400; }
+  .tabel-upah .u-tanpa-hp { display: none; }
+}
+@media (max-width: 599px) {
+  .u-kotak { padding: 16px; }
+  .u-kotak b { font-size: 18px; }
+}
+
+/* Slip upah: kertas A4 di layar, dan hanya slipnya yang tercetak. */
+.slip-hal { width: 100%; max-width: 860px; margin: 0 auto; padding: 24px var(--tepi) 48px; }
+.slip-alat { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+.slip {
+  background: #fff; color: var(--text); border-radius: var(--r-kartu); padding: 48px 56px; font-size: 14px; line-height: 1.5;
+  -webkit-print-color-adjust: exact; print-color-adjust: exact;
+}
+.slip-kop { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; padding-bottom: 20px; border-bottom: 2px solid var(--navy); }
+.slip-kop img { display: block; height: 30px; width: auto; }
+.slip-kop div { text-align: right; }
+.slip-kop h1 { margin: 0; font-size: 28px; letter-spacing: -0.02em; color: var(--navy); }
+.slip-kop p { margin: 4px 0 0; font-size: 14px; color: var(--muted); }
+.slip-data { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 32px; margin: 24px 0 8px; }
+.slip-data div { display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 8px; }
+.slip-data dt { color: var(--muted); }
+.slip-data dd { margin: 0; font-weight: 600; overflow-wrap: anywhere; }
+.slip-sub { margin: 24px 0 10px; font-size: 15px; letter-spacing: -0.01em; color: var(--navy); }
+.slip-gulir { overflow-x: auto; }
+.slip-tabel { width: 100%; border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; }
+.slip-tabel th { padding: 9px 10px; text-align: left; font-weight: 600; white-space: nowrap; color: var(--navy); background: var(--langit); }
+.slip-tabel td { padding: 9px 10px; vertical-align: top; border-bottom: 1px solid var(--line); }
+.slip-tabel .kanan, .slip-tabel tbody tr:not(.slip-ket) td:first-child:not([colspan]) { white-space: nowrap; }
+.slip-tabel .kanan { text-align: right; }
+.slip-tabel tr.ada-ket td { border-bottom: 0; padding-bottom: 2px; }
+.slip-tabel .slip-ket td { padding-top: 0; font-size: 12px; color: #8a5a00; }
+.slip-tabel tfoot td { font-weight: 600; border-bottom: 0; border-top: 2px solid var(--navy); }
+.slip-jadwal { display: block; font-size: 12px; color: var(--muted); }
+.slip-kosong { text-align: center; color: var(--muted); }
+.slip-total { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 16px; padding: 14px 18px; border-radius: 14px; background: var(--navy); color: #fff; }
+.slip-total b { font-size: 22px; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
+.slip-dasar p { margin: 0 0 8px; font-size: 13px; line-height: 1.6; color: #3a3a3c; }
+.slip-dasar .slip-perhatian { color: #8a5a00; }
+.slip-kaki { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-top: 32px; font-size: 13px; color: var(--muted); }
+.slip-kaki p { margin: 0; }
+.slip-ttd { display: grid; justify-items: center; gap: 6px; min-width: 220px; color: var(--text); }
+.slip-garis { display: block; width: 100%; height: 64px; border-bottom: 1px solid var(--text); }
+.slip-ttd span:last-child { font-size: 12px; color: var(--muted); }
+@media (max-width: 599px) {
+  .slip-hal { padding-top: 16px; }
+  .slip { padding: 24px 20px; }
+  .slip-kop { flex-direction: column; align-items: flex-start; }
+  .slip-kop div { text-align: left; }
+  .slip-data { grid-template-columns: 1fr; }
+  .slip-tabel { min-width: 620px; }
+  .slip-kaki { flex-direction: column; align-items: stretch; }
+}
+@media print {
+  @page { size: A4; margin: 14mm 14mm 16mm; }
+  body:has(.slip) { display: block; min-height: 0; background: #fff; }
+  body:has(.slip) .kaki, .slip-alat { display: none !important; }
+  .slip-hal { max-width: none; margin: 0; padding: 0; }
+  .slip { border-radius: 0; padding: 0; font-size: 10.5pt; }
+  .slip-gulir { overflow: visible; }
+  .slip-tabel { min-width: 0; font-size: 9.5pt; }
+  .slip-tabel thead { display: table-header-group; }
+  .slip-tabel tr, .slip-total, .slip-dasar, .slip-kaki { break-inside: avoid; }
+}
