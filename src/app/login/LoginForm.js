@@ -96,7 +96,7 @@ export default function LoginForm() {
                 type="checkbox"
                 checked={centang[i]}
                 onChange={(e) => ubahCentang(i, e.target.checked)}
-                ref={(el) => (kotak.current[i] = el)}
+                ref={(el) => { kotak.current[i] = el; }}
               />
               <span>{teks}</span>
             </label>
