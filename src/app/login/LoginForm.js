@@ -6,7 +6,7 @@ import BantuanWa from "@/components/BantuanWa";
 
 // Teks panduan dipakai persis seperti yang ditetapkan pemilik. Jangan diubah tanpa izin.
 const PEMBUKA =
-  "Mohon baca panduan berikut sampai akhir, lalu centang pernyataan di bawahnya. Tombol Masuk dapat digunakan setelah pernyataan dicentang.";
+  "Mohon baca panduan berikut sampai akhir. Setelah panduan selesai dibaca, pernyataan di bawahnya tercentang otomatis dan tombol Masuk dapat digunakan.";
 const POIN = [
   "Pastikan Anda berada di lokasi acara saat absen, dengan GPS dan internet menyala. Izinkan akses kamera dan lokasi ketika browser memintanya.",
   "Setelah masuk, pilih acara Anda, lalu pilih sesi yang bertanda \"Sedang berlangsung\". Absen masuk baru dapat dilakukan setelah jam mulai sesi.",
@@ -26,25 +26,31 @@ export default function LoginForm() {
   // Status HTTP galat terakhir, untuk memilih tombol bantuan.
   const [kode, setKode] = useState(0);
   const [busy, setBusy] = useState(false);
-  // Panduan dibaca seperti kebijakan: kotak bergulir, lalu satu pernyataan yang baru bisa dicentang setelah
-  // panduan digulir sampai akhir. Tidak ada yang disimpan, jadi tiap membuka halaman masuk crew membaca dan mencentang ulang.
+  // Panduan dibaca seperti kebijakan: kotak bergulir, lalu satu pernyataan yang tercentang otomatis begitu panduan
+  // digulir sampai akhir. Tidak ada yang disimpan, jadi tiap membuka halaman masuk crew membaca ulang.
   const [terbaca, setTerbaca] = useState(false);
   const [setuju, setSetuju] = useState(false);
   const [pesanCentang, setPesanCentang] = useState("");
   const gulir = useRef(null);
   const kotakSetuju = useRef(null);
+  const sudahTerbaca = useRef(false);
 
   // Isian berhuruf berarti nama admin (owner atau superadmin), jadi pernyataan tidak diwajibkan.
   const admin = /[a-z]/i.test(phone);
   const boleh = setuju || admin;
 
   // Dianggap terbaca begitu kotak panduan sampai di bawah, atau kalau isinya muat tanpa perlu digulir.
-  // Sekali terbaca tetap terbaca walaupun kotaknya digulir naik lagi.
+  // Saat itu pernyataan dicentang otomatis, cukup sekali: kalau crew menghapus centangnya lalu menggulir lagi,
+  // centang tidak muncul sendiri. Sekali terbaca tetap terbaca walaupun kotaknya digulir naik lagi.
   useEffect(() => {
     const el = gulir.current;
     if (!el) return;
     const cek = () => {
-      if (el.scrollTop + el.clientHeight >= el.scrollHeight - 16) setTerbaca(true);
+      if (sudahTerbaca.current || el.scrollTop + el.clientHeight < el.scrollHeight - 16) return;
+      sudahTerbaca.current = true;
+      setTerbaca(true);
+      setSetuju(true);
+      setPesanCentang("");
     };
     cek();
     el.addEventListener("scroll", cek, { passive: true });
@@ -58,8 +64,12 @@ export default function LoginForm() {
   async function submit(e) {
     e.preventDefault();
     if (!boleh) {
-      setPesanCentang("Mohon baca panduan sampai akhir dan centang pernyataannya sebelum masuk.");
-      // Belum terbaca: arahkan ke kotak panduan. Sudah terbaca: arahkan ke kotak centang pernyataan.
+      // Belum terbaca: arahkan ke kotak panduan. Sudah terbaca tetapi centangnya dihapus: arahkan ke pernyataan.
+      setPesanCentang(
+        terbaca
+          ? "Mohon centang pernyataan di bawah panduan sebelum masuk."
+          : "Mohon baca panduan sampai akhir sebelum masuk."
+      );
       const tuju = terbaca ? kotakSetuju.current : gulir.current;
       if (tuju) {
         tuju.scrollIntoView({ block: "center", behavior: "smooth" });
@@ -111,7 +121,7 @@ export default function LoginForm() {
             </ol>
           </div>
         </div>
-        {!terbaca && <p className="panduan-petunjuk">Gulir panduan sampai akhir untuk dapat mencentang pernyataan.</p>}
+        {!terbaca && <p className="panduan-petunjuk">Gulir panduan sampai akhir. Pernyataan di bawah akan tercentang otomatis.</p>}
         <label className={terbaca ? "poin" : "poin mati"}>
           <input
             type="checkbox"
