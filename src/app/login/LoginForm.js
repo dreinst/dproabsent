@@ -1,12 +1,12 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import BantuanWa from "@/components/BantuanWa";
 
 // Teks panduan dipakai persis seperti yang ditetapkan pemilik. Jangan diubah tanpa izin.
 const PEMBUKA =
-  "Baca setiap poin dengan saksama, lalu centang sebagai tanda Anda telah memahaminya. Tombol Masuk dapat digunakan setelah semua poin dicentang.";
+  "Mohon baca panduan berikut sampai akhir, lalu centang pernyataan di bawahnya. Tombol Masuk dapat digunakan setelah pernyataan dicentang.";
 const POIN = [
   "Pastikan Anda berada di lokasi acara saat absen, dengan GPS dan internet menyala. Izinkan akses kamera dan lokasi ketika browser memintanya.",
   "Setelah masuk, pilih acara Anda, lalu pilih sesi yang bertanda \"Sedang berlangsung\". Absen masuk baru dapat dilakukan setelah jam mulai sesi.",
@@ -16,6 +16,7 @@ const POIN = [
   "Absen di luar radius lokasi tetap tercatat, tetapi ditandai untuk diperiksa. Jam kerja dihitung dari absen yang disahkan kapten atau admin, jadi gunakan foto asli dan isi kegiatan dengan jujur.",
   "Apabila mengalami kendala saat masuk atau absen, hubungi Andrew melalui tombol bantuan di halaman ini atau tombol \"Hubungi Andrew\" di halaman absen.",
 ];
+const PERNYATAAN = "Saya telah membaca dan memahami panduan absen di atas.";
 
 export default function LoginForm() {
   const router = useRouter();
@@ -25,31 +26,44 @@ export default function LoginForm() {
   // Status HTTP galat terakhir, untuk memilih tombol bantuan.
   const [kode, setKode] = useState(0);
   const [busy, setBusy] = useState(false);
-  // Centang hanya di memori halaman: tidak disimpan, jadi tiap membuka halaman masuk crew mencentang ulang.
-  const [centang, setCentang] = useState(() => POIN.map(() => false));
+  // Panduan dibaca seperti kebijakan: kotak bergulir, lalu satu pernyataan yang baru bisa dicentang setelah
+  // panduan digulir sampai akhir. Tidak ada yang disimpan, jadi tiap membuka halaman masuk crew membaca dan mencentang ulang.
+  const [terbaca, setTerbaca] = useState(false);
+  const [setuju, setSetuju] = useState(false);
   const [pesanCentang, setPesanCentang] = useState("");
-  const kotak = useRef([]);
+  const gulir = useRef(null);
+  const kotakSetuju = useRef(null);
 
-  const jumlah = centang.filter(Boolean).length;
-  const lengkap = jumlah === POIN.length;
-  // Isian berhuruf berarti nama admin (owner atau superadmin), jadi ceklis tidak diwajibkan.
+  // Isian berhuruf berarti nama admin (owner atau superadmin), jadi pernyataan tidak diwajibkan.
   const admin = /[a-z]/i.test(phone);
-  const boleh = lengkap || admin;
+  const boleh = setuju || admin;
 
-  function ubahCentang(i, nilai) {
-    setCentang((lama) => lama.map((v, k) => (k === i ? nilai : v)));
-    setPesanCentang("");
-  }
+  // Dianggap terbaca begitu kotak panduan sampai di bawah, atau kalau isinya muat tanpa perlu digulir.
+  // Sekali terbaca tetap terbaca walaupun kotaknya digulir naik lagi.
+  useEffect(() => {
+    const el = gulir.current;
+    if (!el) return;
+    const cek = () => {
+      if (el.scrollTop + el.clientHeight >= el.scrollHeight - 16) setTerbaca(true);
+    };
+    cek();
+    el.addEventListener("scroll", cek, { passive: true });
+    window.addEventListener("resize", cek);
+    return () => {
+      el.removeEventListener("scroll", cek);
+      window.removeEventListener("resize", cek);
+    };
+  }, []);
 
   async function submit(e) {
     e.preventDefault();
     if (!boleh) {
-      setPesanCentang("Mohon centang semua poin panduan sebelum masuk.");
-      const i = centang.findIndex((v) => !v);
-      const el = kotak.current[i];
-      if (el) {
-        el.scrollIntoView({ block: "center", behavior: "smooth" });
-        el.focus({ preventScroll: true });
+      setPesanCentang("Mohon baca panduan sampai akhir dan centang pernyataannya sebelum masuk.");
+      // Belum terbaca: arahkan ke kotak panduan. Sudah terbaca: arahkan ke kotak centang pernyataan.
+      const tuju = terbaca ? kotakSetuju.current : gulir.current;
+      if (tuju) {
+        tuju.scrollIntoView({ block: "center", behavior: "smooth" });
+        tuju.focus({ preventScroll: true });
       }
       return;
     }
@@ -89,19 +103,28 @@ export default function LoginForm() {
       <section className="panduan" aria-labelledby="judul-panduan">
         <h2 id="judul-panduan">Panduan absen</h2>
         <p className="panduan-buka">{PEMBUKA}</p>
-        <div className="panduan-daftar" role="group" aria-labelledby="judul-panduan">
-          {POIN.map((teks, i) => (
-            <label key={i} className="poin">
-              <input
-                type="checkbox"
-                checked={centang[i]}
-                onChange={(e) => ubahCentang(i, e.target.checked)}
-                ref={(el) => { kotak.current[i] = el; }}
-              />
-              <span>{teks}</span>
-            </label>
-          ))}
+        {/* Bayangan di bawah kotak menandakan isi panduan masih berlanjut. tabIndex supaya bisa digulir dengan papan ketik. */}
+        <div className={terbaca ? "panduan-kotak habis" : "panduan-kotak"}>
+          <div className="panduan-gulir" ref={gulir} tabIndex={0} role="region" aria-label="Isi panduan absen">
+            <ol>
+              {POIN.map((teks, i) => <li key={i}>{teks}</li>)}
+            </ol>
+          </div>
         </div>
+        {!terbaca && <p className="panduan-petunjuk">Gulir panduan sampai akhir untuk dapat mencentang pernyataan.</p>}
+        <label className={terbaca ? "poin" : "poin mati"}>
+          <input
+            type="checkbox"
+            checked={setuju}
+            disabled={!terbaca}
+            onChange={(e) => {
+              setSetuju(e.target.checked);
+              setPesanCentang("");
+            }}
+            ref={kotakSetuju}
+          />
+          <span>{PERNYATAAN}</span>
+        </label>
       </section>
       {/* Satu kolom untuk semua akun: crew mengisi nomor HP, owner dan superadmin mengisi nama. Server yang membedakannya. */}
       <label>Nomor HP atau nama admin</label>
@@ -129,15 +152,10 @@ export default function LoginForm() {
           {pesanCentang}
         </div>
       )}
-      {/* aria-disabled, bukan disabled: tombol tetap bisa ditekan supaya crew mendapat pesan dan fokus ke poin yang belum dicentang. */}
+      {/* aria-disabled, bukan disabled: tombol tetap bisa ditekan supaya crew mendapat pesan dan diarahkan ke panduan. */}
       <button className="btn-primary" disabled={busy} aria-disabled={!boleh || busy} data-terkunci={!boleh ? "ya" : undefined}>
         {busy ? "Memproses..." : "Masuk"}
       </button>
-      {!admin && (
-        <p className="panduan-hitung" aria-live="polite">
-          {jumlah} dari {POIN.length} poin sudah dicentang
-        </p>
-      )}
     </form>
   );
 }

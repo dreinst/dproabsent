@@ -7,7 +7,7 @@ Panduan ini untuk superadmin. Bagian crew bisa diteruskan ke tim lapangan.
 ## Masuk
 
 1. Buka web absen di HP. Kamera dan lokasi hanya jalan lewat HTTPS, jadi pakai alamat di atas.
-2. Baca "Panduan absen" di halaman masuk dan centang ketujuh poinnya. Tombol Masuk baru berfungsi setelah semua poin dicentang. Centangnya tidak disimpan, jadi setiap kali masuk crew mencentang ulang.
+2. Baca "Panduan absen" di halaman masuk. Isinya tujuh poin dalam satu kotak yang digulir, seperti halaman kebijakan. Pernyataan "Saya telah membaca dan memahami panduan absen di atas." baru bisa dicentang setelah kotak itu digulir sampai akhir, dan tombol Masuk baru berfungsi setelah pernyataan dicentang. Centangnya tidak disimpan, jadi setiap kali masuk crew membaca dan mencentang ulang.
 3. Isi Nomor HP yang terdaftar, diketik seperti biasa dengan awalan 08. Contoh: `081234564321`. Awalan 62 atau +62 juga diterima.
 4. Isi password, lalu tekan Masuk.
 
