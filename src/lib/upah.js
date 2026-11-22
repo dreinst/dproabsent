@@ -153,8 +153,10 @@ export function hitungUpahAcara({ sesi, absen, kapten = [], orang = [], tarif, s
       const k = hitungKapten(milik, tarif);
       hasil.push({
         user, peran: "KAPTEN", sesiDihadiri: k.sesiDihadiri, menitDibayar: 0, menitLembur: 0,
-        jumlahHari: k.jumlahHari, hari: k.hari, upah: k.upah, menunggu: k.menunggu, menitTerpotong: 0, sesi: [],
+        jumlahHari: k.jumlahHari, hari: k.hari, upah: k.upah, menunggu: k.menunggu, sesi: [],
         catatan: catatanKapten(k),
+        // Catatan kapten tidak memuat bahasa uang, jadi Panel kapten memakai catatan yang sama.
+        catatanProgres: catatanKapten(k),
       });
       continue;
     }
@@ -165,6 +167,14 @@ export function hitungUpahAcara({ sesi, absen, kapten = [], orang = [], tarif, s
       if (absenSesi.length) perSesi.push({ sesi: s, ...hitungSesiCrew(s, absenSesi, tarif, sekarang) });
     }
     const jumlah = (kunci) => perSesi.reduce((t, r) => t + (typeof r[kunci] === "boolean" ? Number(r[kunci]) : r[kunci]), 0);
+    const fakta = {
+      masukDitolak: jumlah("masukDitolak"),
+      tanpaMasuk: jumlah("tanpaMasuk"),
+      tanpaPulang: jumlah("tanpaPulang"),
+      pulangOtomatis: jumlah("pulangOtomatis"),
+      berjalan: perSesi.filter((r) => r.berjalan && r.hadir).length,
+      menitTerpotong: jumlah("menitTerpotong"),
+    };
     hasil.push({
       user, peran: "CREW",
       sesiDihadiri: jumlah("hadir"),
@@ -173,17 +183,10 @@ export function hitungUpahAcara({ sesi, absen, kapten = [], orang = [], tarif, s
       jumlahHari: 0, hari: [],
       upah: jumlah("upah"),
       menunggu: jumlah("menunggu"),
-      // Menit yang tidak terhitung karena absen progres terlambat atau terlewat (angka mentah untuk tampilan tanpa uang).
-      menitTerpotong: jumlah("menitTerpotong"),
       sesi: perSesi,
-      catatan: catatanCrew({
-        masukDitolak: jumlah("masukDitolak"),
-        tanpaMasuk: jumlah("tanpaMasuk"),
-        tanpaPulang: jumlah("tanpaPulang"),
-        pulangOtomatis: jumlah("pulangOtomatis"),
-        berjalan: perSesi.filter((r) => r.berjalan && r.hadir).length,
-        menitTerpotong: jumlah("menitTerpotong"),
-      }),
+      catatan: catatanCrew(fakta),
+      // Fakta yang sama tanpa bahasa uang, untuk Panel kapten.
+      catatanProgres: catatanProgresCrew(fakta),
     });
   }
 
@@ -217,6 +220,18 @@ export function catatanCrew(n) {
   if (n.tanpaPulang) c.push(`Tidak absen pulang di ${n.tanpaPulang} sesi`);
   if (n.pulangOtomatis) c.push(`Pulang dicatat sistem di ${n.pulangOtomatis} sesi`);
   if (n.menitTerpotong) c.push(`${fmtDurasi(n.menitTerpotong)} tidak dibayar karena absen progres terlambat atau terlewat`);
+  if (n.berjalan) c.push(`${n.berjalan} sesi masih berlangsung`);
+  return c;
+}
+
+// Catatan crew untuk Panel kapten: fakta yang sama dengan catatanCrew, tanpa bahasa uang.
+export function catatanProgresCrew(n) {
+  const c = [];
+  if (n.masukDitolak) c.push(`Absen masuk ditolak di ${n.masukDitolak} sesi`);
+  if (n.tanpaMasuk) c.push(`Tidak ada absen masuk di ${n.tanpaMasuk} sesi`);
+  if (n.tanpaPulang) c.push(`Tidak absen pulang di ${n.tanpaPulang} sesi`);
+  if (n.pulangOtomatis) c.push(`Pulang dicatat sistem di ${n.pulangOtomatis} sesi`);
+  if (n.menitTerpotong) c.push(`${fmtDurasi(n.menitTerpotong)} tidak terhitung sebagai jam kerja karena absen progres terlambat atau terlewat`);
   if (n.berjalan) c.push(`${n.berjalan} sesi masih berlangsung`);
   return c;
 }

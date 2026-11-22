@@ -5,7 +5,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   hitungSesiCrew, hitungKapten, hitungUpahAcara, upahDariMenit, keMenit, tanggalWib,
-  fmtRupiah, fmtDurasi, samarkanHp, catatanSesi,
+  fmtRupiah, fmtDurasi, samarkanHp, catatanSesi, catatanProgresCrew,
 } from "./upah.js";
 import { periksaTarif, bacaBulatPositif } from "./pengaturan.js";
 
@@ -345,6 +345,9 @@ test("rekap acara: kapten dibayar per hari walau punya absen progres, total kese
   assert.equal(per.Dodi.upah, 0);
   assert.equal(per.Dodi.sesiDihadiri, 0);
   assert.match(per.Dodi.catatan[0], /Absen masuk ditolak di 1 sesi/);
+  assert.match(per.Dodi.catatanProgres[0], /^Absen masuk ditolak di 1 sesi$/);
+  assert.deepEqual(per.Citra.catatanProgres, ["Belum ada absen masuk yang disahkan"]);
+  for (const r of hasil.orang) for (const t of r.catatanProgres) assert.doesNotMatch(t, /dibayar|upah|\bRp\b/i);
   assert.equal(hasil.total.upah, 260000);
   assert.equal(hasil.total.upahCrew, 60000);
   assert.equal(hasil.total.upahKapten, 200000);
@@ -373,4 +376,18 @@ test("validasi tarif: hanya bilangan bulat positif", () => {
     assert.ok(periksaTarif({ crewPerJam: salah, kaptenPerHari: "200000", jamPerShift: "8" }).galat);
   }
   assert.match(periksaTarif({ crewPerJam: "15000", kaptenPerHari: "200000", jamPerShift: "25" }).galat, /paling besar 24/);
+});
+
+test("catatan progres untuk Panel kapten memuat fakta yang sama tanpa bahasa uang", () => {
+  const c = catatanProgresCrew({ masukDitolak: 1, tanpaMasuk: 1, tanpaPulang: 2, pulangOtomatis: 1, menitTerpotong: 45, berjalan: 1 });
+  assert.deepEqual(c, [
+    "Absen masuk ditolak di 1 sesi",
+    "Tidak ada absen masuk di 1 sesi",
+    "Tidak absen pulang di 2 sesi",
+    "Pulang dicatat sistem di 1 sesi",
+    "45 menit tidak terhitung sebagai jam kerja karena absen progres terlambat atau terlewat",
+    "1 sesi masih berlangsung",
+  ]);
+  for (const t of c) assert.doesNotMatch(t, /dibayar|upah|\bRp\b/i);
+  assert.deepEqual(catatanProgresCrew({}), []);
 });

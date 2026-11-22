@@ -5,7 +5,7 @@ import { bacaProfil } from "@/lib/profil";
 import { kaptenBolehLihatProfil } from "@/lib/kapten";
 
 // Foto profil hanya boleh dilihat pemiliknya, admin (owner/superadmin), dan kapten
-// untuk user yang punya absen di acara yang ia pegang.
+// untuk user yang punya absen di acara yang ia pegang serta kapten lain di acara itu.
 export async function GET(_req, { params }) {
   const user = await getCurrentUser();
   if (!user) return new NextResponse("Belum masuk.", { status: 401 });

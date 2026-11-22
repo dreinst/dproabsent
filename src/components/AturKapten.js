@@ -11,7 +11,6 @@ export default function AturKapten({ eventId, crew, awal }) {
   const [kata, setKata] = useState("");
   const [pilih, setPilih] = useState(() => new Set(awal));
 
-  const nama = new Map(crew.map((c) => [c.id, c.name]));
   const ditambah = crew.filter((c) => pilih.has(c.id) && !awal.includes(c.id));
   const dilepas = crew.filter((c) => !pilih.has(c.id) && awal.includes(c.id));
   const berubah = ditambah.length + dilepas.length > 0;
@@ -30,10 +29,7 @@ export default function AturKapten({ eventId, crew, awal }) {
       return baru;
     });
 
-  const ringkasan = [
-    ditambah.length ? `${ditambah.length} ditambahkan` : null,
-    dilepas.length ? `${dilepas.length} dilepas` : null,
-  ].filter(Boolean).join(", ");
+  const daftarNama = (daftar) => daftar.map((c) => c.name).join(", ");
 
   return (
     <form action={aturKapten} className="atur-kapten">
@@ -62,7 +58,7 @@ export default function AturKapten({ eventId, crew, awal }) {
       </div>
 
       <p className="meta atur-kapten-ket">
-        {k ? `${jumlahCocok} dari ${crew.length} crew cocok dengan pencarian.` : `${crew.length} crew.`}
+        {k ? `${jumlahCocok} dari ${crew.length} crew cocok dengan pencarian.` : `${crew.length} crew dalam daftar.`}
       </p>
 
       <div className="atur-kapten-pilihan" aria-live="polite">
@@ -78,9 +74,12 @@ export default function AturKapten({ eventId, crew, awal }) {
 
       <div className="atur-kapten-kaki">
         <span className={berubah ? "atur-kapten-ringkas ubah" : "atur-kapten-ringkas"} aria-live="polite">
-          {berubah
-            ? <>{ringkasan}. <span className="meta">{[...ditambah, ...dilepas].map((c) => nama.get(c.id)).join(", ")}</span></>
-            : "Belum ada perubahan."}
+          {berubah ? (
+            <>
+              {ditambah.length > 0 && <span className="atur-kapten-ubah">Ditambahkan: {daftarNama(ditambah)}.</span>}
+              {dilepas.length > 0 && <span className="atur-kapten-ubah">Dilepas: {daftarNama(dilepas)}.</span>}
+            </>
+          ) : "Belum ada perubahan."}
         </span>
         <div className="row">
           <button type="button" className="btn-ghost btn-kecil" disabled={!berubah} onClick={() => setPilih(new Set(awal))}>

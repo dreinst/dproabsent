@@ -853,7 +853,7 @@ body:has(.menu-hp[open]) { overflow: hidden; }
 .atur-kapten-kaki { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px 16px; margin-top: 16px; }
 .atur-kapten-ringkas { flex: 1 1 200px; min-width: 0; font-size: 14px; color: var(--muted); overflow-wrap: anywhere; }
 .atur-kapten-ringkas.ubah { color: var(--text); font-weight: 500; }
-.atur-kapten-ringkas .meta { font-weight: 400; }
+.atur-kapten-ubah { display: block; }
 .atur-kapten-kaki .row { flex-wrap: wrap; gap: 8px; }
 
 /* Keputusan per foto dan pesan galat aksi Sahkan, Tolak, atau Batalkan pengesahan. */

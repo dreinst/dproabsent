@@ -44,11 +44,17 @@ export async function kaptenDiSesi(userId, sessionId) {
   return Boolean(ada);
 }
 
-// Kapten boleh melihat foto profil user yang punya absen di acara yang ia pegang.
+// Kapten boleh melihat foto profil user yang punya absen di acara yang ia pegang, dan foto kapten lain di acara itu
+// (baris kapten tetap tampil di Progres crew walau belum punya absen).
 export async function kaptenBolehLihatProfil(userId, targetId) {
-  const ada = await prisma.absensi.findFirst({
+  const absen = await prisma.absensi.findFirst({
     where: { userId: targetId, session: { event: { kapten: { some: { userId } } } } },
     select: { id: true },
   });
-  return Boolean(ada);
+  if (absen) return true;
+  const sesama = await prisma.kaptenAcara.findFirst({
+    where: { userId: targetId, event: { kapten: { some: { userId } } } },
+    select: { eventId: true },
+  });
+  return Boolean(sesama);
 }

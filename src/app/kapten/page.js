@@ -215,11 +215,6 @@ function Sel({ label, children, kosongHp }) {
   return <div className={kosongHp ? "p-angka p-tanpa-hp" : "p-angka"} data-label={label}>{children}</div>;
 }
 
-// Catatan progres dari angka mentah, tanpa bahasa uang.
-function catatanProgres(r) {
-  return r.menitTerpotong ? `Absen progres terlambat atau terlewat, ${fmtDurasi(r.menitTerpotong)} tidak terhitung sebagai jam kerja.` : null;
-}
-
 // Tabel progres crew. Hanya nama, sesi, jam kerja, lembur, hari, dan menunggu yang dirender dari rekap.
 function ProgresCrew({ rekap }) {
   const orang = rekap?.orang ?? [];
@@ -238,7 +233,6 @@ function ProgresCrew({ rekap }) {
         {orang.length === 0 && <div className="kosong">Belum ada absen di acara ini.</div>}
         {orang.map((r) => {
           const kapten = r.peran === "KAPTEN";
-          const catatan = catatanProgres(r);
           return (
             <div className="baris p-baris" style={KOL} key={r.user.id}>
               <div className="p-nama">
@@ -257,7 +251,8 @@ function ProgresCrew({ rekap }) {
                   {r.menunggu ? <span className="badge warn">{r.menunggu}</span> : 0}
                 </Sel>
               </div>
-              {catatan && <div className="p-catatan">{catatan}</div>}
+              {/* catatanProgres berisi fakta yang sama dengan catatan di halaman Upah, tanpa bahasa uang. */}
+              {r.catatanProgres.length > 0 && <div className="p-catatan">{r.catatanProgres.join(". ")}.</div>}
             </div>
           );
         })}
