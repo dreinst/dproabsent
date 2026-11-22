@@ -826,33 +826,35 @@ body:has(.menu-hp[open]) { overflow: hidden; }
 /* Detail acara: kolom kanan menumpuk kartu Sesi tugas dan Kapten acara. */
 .kolom-tumpuk { display: grid; gap: var(--kisi); align-content: start; min-width: 0; }
 .kapten-kartu .sub { margin-bottom: 16px; }
-.kapten-kosong { background: var(--bg); border-radius: 18px; padding: 16px 18px; font-size: 14px; color: var(--muted); }
-.kapten-daftar { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
-.kapten-baris { display: flex; align-items: center; gap: 12px; min-width: 0; background: var(--bg); border-radius: 18px; padding: 10px 10px 10px 12px; }
-.kapten-baris b { display: block; font-size: 15px; font-weight: 600; line-height: 1.3; overflow-wrap: anywhere; }
-.kapten-baris .meta { display: block; font-size: 13px; }
-.kapten-baris form { margin: 0; flex: none; }
-.kapten-catatan { margin: 16px 0 0; }
 
-/* Pilihan kapten: kotak cari dan daftar crew aktif yang bisa digulir. */
-.pilih-kapten label[for] { margin-top: 20px; }
-.pilih-kapten-daftar {
-  display: grid; gap: 2px; margin-top: 10px; padding: 6px; max-height: 288px; overflow-y: auto; overscroll-behavior: contain;
+/* Ceklis kapten: kotak cari, daftar crew yang bisa digulir (kapten di atas), ringkasan perubahan, dan tombol simpan. */
+.atur-kapten label[for] { margin-top: 0; }
+.atur-kapten-daftar {
+  display: grid; gap: 2px; margin-top: 10px; padding: 6px; max-height: 320px; overflow-y: auto; overscroll-behavior: contain;
   border-radius: 18px; background: var(--bg);
 }
-.pilih-kapten-item {
-  position: relative; display: flex; align-items: center; gap: 12px; min-height: 48px; margin: 0; padding: 0 14px;
+.atur-kapten-item {
+  display: flex; align-items: center; gap: 12px; min-height: 48px; margin: 0; padding: 0 14px;
   border-radius: 14px; font-size: 15px; font-weight: 500; line-height: 1.3; cursor: pointer; transition: background-color 0.15s;
 }
-.pilih-kapten-item:hover { background: #fff; }
-.pilih-kapten-item input { position: absolute; opacity: 0; pointer-events: none; }
-.pilih-kapten-item:has(input:focus-visible) { outline: 2px solid var(--biru); outline-offset: -2px; }
-.pilih-kapten-item.on { background: var(--navy); color: #fff; }
-.pilih-kapten-item.on .meta { color: rgba(255, 255, 255, 0.75); }
-.pilih-kapten-item .meta { flex: none; font-variant-numeric: tabular-nums; }
-.pilih-kapten-daftar .kosong { padding: 18px; font-size: 14px; }
-.pilih-kapten-kaki { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px 14px; margin-top: 12px; }
-.pilih-kapten-kaki .meta { min-width: 0; overflow-wrap: anywhere; }
+.atur-kapten-item[hidden] { display: none; }
+.atur-kapten-item:hover { background: #fff; }
+.atur-kapten-item input { flex: none; width: 20px; height: 20px; margin: 0; accent-color: var(--navy); cursor: pointer; }
+.atur-kapten-item.on { background: #fff; box-shadow: inset 0 0 0 1.5px var(--navy); }
+.atur-kapten-item .grow { min-width: 0; overflow-wrap: anywhere; }
+.atur-kapten-item .meta { flex: none; font-variant-numeric: tabular-nums; }
+.atur-kapten-nonaktif { display: block; font-size: 12.5px; font-weight: 500; color: #8a5a00; }
+.atur-kapten-daftar .kosong { padding: 18px; font-size: 14px; }
+.atur-kapten-ket { margin: 8px 0 0; }
+.atur-kapten-pilihan { display: grid; gap: 6px; margin-top: 16px; font-size: 14px; }
+.atur-kapten-judul { font-size: 13px; font-weight: 500; }
+.atur-kapten-pilihan ul { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; margin: 0; padding: 0; }
+.atur-kapten-pilihan li { padding: 5px 12px; border-radius: 999px; background: var(--langit); color: var(--navy); font-size: 13.5px; font-weight: 500; overflow-wrap: anywhere; }
+.atur-kapten-kaki { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px 16px; margin-top: 16px; }
+.atur-kapten-ringkas { flex: 1 1 200px; min-width: 0; font-size: 14px; color: var(--muted); overflow-wrap: anywhere; }
+.atur-kapten-ringkas.ubah { color: var(--text); font-weight: 500; }
+.atur-kapten-ringkas .meta { font-weight: 400; }
+.atur-kapten-kaki .row { flex-wrap: wrap; gap: 8px; }
 
 /* Keputusan per foto dan pesan galat aksi Sahkan, Tolak, atau Batalkan pengesahan. */
 .grup-oleh { font-size: 12.5px; line-height: 1.4; overflow-wrap: anywhere; }
@@ -881,6 +883,33 @@ body:has(.menu-hp[open]) { overflow: hidden; }
 .ringkasan-angka b { font-size: 16px; font-weight: 600; color: var(--text); font-variant-numeric: tabular-nums; }
 .ringkasan-angka .perlu { background: #fff4d6; color: #8a5a00; }
 .ringkasan-angka .perlu b { color: #8a5a00; }
+
+/* Progres crew di Panel kapten: tabel di layar lebar, kartu per orang di HP. */
+.kapten-isi .saring-baris + .saring-baris { margin-top: 0; }
+.tabel-progres { padding-bottom: 0; }
+.tabel-progres .baris { gap: 12px; padding: 14px 24px; }
+.tabel-progres .kanan, .p-angka { text-align: right; }
+.p-fakta { display: contents; }
+.p-angka { font-variant-numeric: tabular-nums; }
+.p-nama { display: flex; align-items: center; gap: 12px; min-width: 0; color: var(--text); }
+.p-nama-teks { display: grid; gap: 4px; justify-items: start; min-width: 0; }
+.p-nama-teks b { font-weight: 600; line-height: 1.3; overflow-wrap: anywhere; }
+.p-peran { font-size: 13px; color: var(--muted); }
+.p-catatan { grid-column: 1 / -1; margin: -4px 0 0 48px; font-size: 13px; line-height: 1.45; color: #8a5a00; }
+.tabel-progres .p-total, .tabel-progres .p-total:hover { background: var(--bg); font-weight: 600; }
+.tabel-progres > .kosong { padding: 24px; }
+
+@media (max-width: 899px) {
+  .tabel-progres .baris.kop { display: none; }
+  .tabel-progres .baris.kop + .baris { border-top: 0; }
+  .tabel-progres .baris { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; align-items: center; padding: 16px 20px; font-size: 14px; color: var(--text); }
+  .tabel-progres .p-nama { font-size: 16px; }
+  .tabel-progres .p-fakta { display: flex; flex-wrap: wrap; gap: 4px 16px; }
+  .tabel-progres .p-angka { text-align: left; }
+  .tabel-progres .p-angka::before { content: attr(data-label) " "; color: var(--muted); font-weight: 400; }
+  .tabel-progres .p-tanpa-hp { display: none; }
+  .tabel-progres .p-catatan { margin: 0; }
+}
 
 /* Absen tanpa foto (pulang otomatis): kotak pengganti di foto kecil dan foto besar. */
 .thumb-kosong { display: grid; place-items: center; background: var(--kosong); color: var(--muted); font-size: 13px; font-weight: 500; text-align: center; }

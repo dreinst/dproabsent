@@ -4,7 +4,10 @@ import { Prisma } from "@prisma/client";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { hakKapten } from "@/lib/kapten";
+import { rekapUpah } from "@/lib/data-upah";
+import { fmtDurasi } from "@/lib/upah";
 import { fmtWaktu, fmtSingkat } from "@/lib/waktu";
+import Avatar from "@/components/Avatar";
 import KartuAbsen from "@/components/KartuAbsen";
 import { BarisSaring, Chip } from "@/components/Saringan";
 import PilihAcara from "@/components/PilihAcara";
@@ -20,6 +23,12 @@ const SARING = {
   pulang: { label: "Tidak absen pulang", where: { otomatis: true } },
   semua: { label: "Semua", where: {} },
 };
+// Dua tampilan Panel kapten. Bawaannya pengesahan absen, ?lihat=progres menampilkan progres crew.
+const TAMPILAN = { sah: "Pengesahan absen", progres: "Progres crew" };
+const strip = "-";
+// Kolom tabel progres: nama, lalu lima angka.
+const KOL = { "--kol": "minmax(0, 1.8fr) 64px 150px 120px 64px 96px" };
+
 // Kalau acaranya lebih dari ini, pilihan acara tampil sebagai dropdown.
 const MAKS_CHIP_ACARA = 8;
 // Jumlah absen terbaru yang diambil sebelum dikelompokkan per crew dan sesi.
@@ -61,13 +70,14 @@ export default async function KaptenPage({ searchParams }) {
 
   const sp = await searchParams;
   const f = SARING[sp.f] ? sp.f : "belum";
+  const lihat = sp.lihat === "progres" ? "progres" : "sah";
   const dipilih = acara.find((a) => String(a.id) === String(sp.acara)) || acara[0];
 
-  const [kapten, sesi, belumAcara, rows] = await Promise.all([
+  const [kapten, sesi, belumAcara, rows, rekap] = await Promise.all([
     prisma.kaptenAcara.findMany({ where: { eventId: dipilih.id }, select: { userId: true } }),
     ringkasanSesi(dipilih.id),
     belumPerAcara(acara.map((a) => a.id)),
-    prisma.absensi.findMany({
+    lihat === "sah" ? prisma.absensi.findMany({
       where: { session: { eventId: dipilih.id }, ...SARING[f].where },
       include: {
         user: { select: { id: true, name: true, avatar: true, role: true } },
@@ -77,7 +87,9 @@ export default async function KaptenPage({ searchParams }) {
       omit: { photo: true },
       orderBy: { checkedAt: "desc" },
       take: MAKS_ABSEN,
-    }),
+    }) : [],
+    // Rekap hanya dipakai di server dan hanya sebagian kolomnya yang dirender. Tidak ada data uang yang dikirim ke browser.
+    lihat === "progres" ? rekapUpah(dipilih.id) : null,
   ]);
 
   const kaptenAcara = new Set(kapten.map((k) => k.userId));
@@ -99,9 +111,10 @@ export default async function KaptenPage({ searchParams }) {
   const jumlahCrew = new Set(rows.map((r) => r.userId)).size;
 
   // Tautan yang mempertahankan parameter lain. Nilai bawaan tidak ditulis.
-  const url = ({ a = dipilih.id, st = f } = {}) => {
+  const url = ({ a = dipilih.id, st = f, tampil = lihat } = {}) => {
     const u = new URLSearchParams();
     if (a !== acara[0].id) u.set("acara", String(a));
+    if (tampil !== "sah") u.set("lihat", tampil);
     if (st !== "belum") u.set("f", st);
     const qs = u.toString();
     return qs ? `/kapten?${qs}` : "/kapten";
@@ -120,7 +133,7 @@ export default async function KaptenPage({ searchParams }) {
         <div className="crew-hero-isi">
           <div className="judul">
             <h1>Panel kapten</h1>
-            <p>Sahkan atau tolak absen crew di acara yang Anda pegang. Absen Anda dan absen kapten lain disahkan oleh owner atau superadmin.</p>
+            <p>Sahkan atau tolak absen crew dan pantau progres crew di acara yang Anda pegang. Absen Anda dan absen kapten lain disahkan oleh owner atau superadmin.</p>
             <SegarOtomatis />
           </div>
           <div className="row">
@@ -145,6 +158,14 @@ export default async function KaptenPage({ searchParams }) {
           )}
         </BarisSaring>
 
+        <BarisSaring judul="Tampilan">
+          <div className="saring">
+            {Object.entries(TAMPILAN).map(([nilai, label]) => (
+              <Chip key={nilai} href={url({ tampil: nilai })} aktif={nilai === lihat} label={label} />
+            ))}
+          </div>
+        </BarisSaring>
+
         <section className="ringkasan-sesi" aria-label="Ringkasan per sesi">
           {sesi.length === 0 && <div className="kosong">Acara ini belum memiliki sesi.</div>}
           {sesi.map((s) => (
@@ -161,26 +182,102 @@ export default async function KaptenPage({ searchParams }) {
           ))}
         </section>
 
-        <BarisSaring judul="Status">
-          <div className="saring">
-            {Object.entries(SARING).map(([nilai, { label }]) => (
-              <Chip key={nilai} href={url({ st: nilai })} aktif={nilai === f} label={label} n={total[nilai]} />
-            ))}
-          </div>
-        </BarisSaring>
+        {lihat === "progres" ? <ProgresCrew rekap={rekap} /> : (
+          <>
+          <BarisSaring judul="Status">
+            <div className="saring">
+              {Object.entries(SARING).map(([nilai, { label }]) => (
+                <Chip key={nilai} href={url({ st: nilai })} aktif={nilai === f} label={label} n={total[nilai]} />
+              ))}
+            </div>
+          </BarisSaring>
 
-        {rows.length === 0 && (
-          <div className="kosong">
-            {f === "belum" ? "Semua absen di acara ini sudah disahkan." : f === "pulang" ? "Tidak ada crew yang tidak absen pulang." : "Tidak ada absen yang sesuai."}
-          </div>
-        )}
-        {kelompok.map((g) => <KartuAbsen key={g.kunci} user={g.user} session={g.session} items={g.items} hak={hak} />)}
-        {rows.length > 0 && (
-          <div className="meta">
-            Menampilkan {rows.length} absen dari {jumlahCrew} crew{rows.length >= MAKS_ABSEN ? ` (batas ${MAKS_ABSEN} absen terbaru)` : ""}.
-          </div>
+          {rows.length === 0 && (
+            <div className="kosong">
+              {f === "belum" ? "Semua absen di acara ini sudah disahkan." : f === "pulang" ? "Tidak ada crew yang tidak absen pulang." : "Tidak ada absen yang sesuai."}
+            </div>
+          )}
+          {kelompok.map((g) => <KartuAbsen key={g.kunci} user={g.user} session={g.session} items={g.items} hak={hak} />)}
+          {rows.length > 0 && (
+            <div className="meta">
+              Menampilkan {rows.length} absen dari {jumlahCrew} crew{rows.length >= MAKS_ABSEN ? ` (batas ${MAKS_ABSEN} absen terbaru)` : ""}.
+            </div>
+          )}
+          </>
         )}
       </main>
     </div>
+  );
+}
+
+// Sel angka: di layar lebar label diambil dari baris judul, di layar sempit dari data-label.
+function Sel({ label, children, kosongHp }) {
+  return <div className={kosongHp ? "p-angka p-tanpa-hp" : "p-angka"} data-label={label}>{children}</div>;
+}
+
+// Catatan progres dari angka mentah, tanpa bahasa uang.
+function catatanProgres(r) {
+  return r.menitTerpotong ? `Absen progres terlambat atau terlewat, ${fmtDurasi(r.menitTerpotong)} tidak terhitung sebagai jam kerja.` : null;
+}
+
+// Tabel progres crew. Hanya nama, sesi, jam kerja, lembur, hari, dan menunggu yang dirender dari rekap.
+function ProgresCrew({ rekap }) {
+  const orang = rekap?.orang ?? [];
+  const total = rekap?.total;
+  return (
+    <>
+      <div className="tabel tabel-progres">
+        <div className="baris kop" style={KOL}>
+          <div>Nama</div>
+          <div className="kanan">Sesi</div>
+          <div className="kanan">Jam kerja</div>
+          <div className="kanan">Lembur</div>
+          <div className="kanan">Hari</div>
+          <div className="kanan">Menunggu</div>
+        </div>
+        {orang.length === 0 && <div className="kosong">Belum ada absen di acara ini.</div>}
+        {orang.map((r) => {
+          const kapten = r.peran === "KAPTEN";
+          const catatan = catatanProgres(r);
+          return (
+            <div className="baris p-baris" style={KOL} key={r.user.id}>
+              <div className="p-nama">
+                <Avatar id={r.user.id} nama={r.user.name} avatar={r.user.avatar} ukuran={36} />
+                <div className="p-nama-teks">
+                  <b>{r.user.name}</b>
+                  {kapten ? <span className="badge navy">Kapten</span> : <span className="p-peran">Crew</span>}
+                </div>
+              </div>
+              <div className="p-fakta">
+                <Sel label="Sesi">{r.sesiDihadiri}</Sel>
+                <Sel label="Jam kerja" kosongHp={kapten}>{kapten ? strip : fmtDurasi(r.menitDibayar)}</Sel>
+                <Sel label="Lembur" kosongHp={kapten || !r.menitLembur}>{kapten || !r.menitLembur ? strip : fmtDurasi(r.menitLembur)}</Sel>
+                <Sel label="Hari" kosongHp={!kapten}>{kapten ? r.jumlahHari : strip}</Sel>
+                <Sel label="Menunggu" kosongHp={!r.menunggu}>
+                  {r.menunggu ? <span className="badge warn">{r.menunggu}</span> : 0}
+                </Sel>
+              </div>
+              {catatan && <div className="p-catatan">{catatan}</div>}
+            </div>
+          );
+        })}
+        {orang.length > 0 && (
+          <div className="baris p-baris p-total" style={KOL}>
+            <div className="p-nama"><b>Total ({total.orang} orang)</b></div>
+            <div className="p-fakta">
+              <Sel label="Sesi">{total.sesiDihadiri}</Sel>
+              <Sel label="Jam kerja">{fmtDurasi(total.menitDibayar)}</Sel>
+              <Sel label="Lembur" kosongHp={!total.menitLembur}>{total.menitLembur ? fmtDurasi(total.menitLembur) : strip}</Sel>
+              <Sel label="Hari" kosongHp={!total.jumlahHari}>{total.jumlahHari}</Sel>
+              <Sel label="Menunggu" kosongHp={!total.menunggu}>{total.menunggu}</Sel>
+            </div>
+          </div>
+        )}
+      </div>
+      <p className="meta">
+        Jam kerja dihitung dari absen yang sudah disahkan, hanya di dalam jadwal sesi. Kolom Menunggu berisi absen yang belum
+        disahkan dan belum diperhitungkan, jadi jam kerja bisa bertambah setelah absen itu disahkan.
+      </p>
+    </>
   );
 }

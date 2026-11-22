@@ -56,9 +56,11 @@ Crew yang lupa absen pulang muncul di menu Verifikasi, tab "Belum pulang". Tombo
 
 ## Kapten
 
-Owner atau superadmin menunjuk kapten di halaman detail acara, bagian "Kapten acara". Satu acara boleh punya lebih dari satu kapten, dan kapten bisa diganti kapan saja. Kapten tetap absen seperti crew.
+Owner atau superadmin memilih kapten di halaman detail acara, kartu "Kapten acara". Centang crew yang menjadi kapten, lalu klik "Simpan kapten". Kotak cari menyaring daftar menurut nama atau empat digit akhir nomor HP, dan kapten saat ini selalu tampil di atas. Ringkasan di bawah daftar menunjukkan siapa yang ditambahkan dan dilepas sebelum disimpan, dan "Batalkan perubahan" mengembalikan ceklis seperti semula. Satu acara boleh punya lebih dari satu kapten, dan kapten bisa diganti kapan saja. Kalau dua admin mengubah ceklis di waktu yang sama, yang disimpan hanya selisih dari ceklis masing-masing, jadi perubahan yang satu tidak menimpa yang lain. Kapten tetap absen seperti crew.
 
-Kapten membuka "Panel kapten" dari halaman absennya. Di sana kapten mengesahkan atau menolak absen crew di acara yang dipegangnya, termasuk lewat tombol "Sahkan semua". Kapten tidak bisa memutuskan absen dirinya sendiri, kapten lain, owner, atau superadmin; absen tersebut diputuskan owner atau superadmin. Kapten hanya bisa membatalkan pengesahan yang ia buat sendiri. Di menu Verifikasi, setiap absen menampilkan siapa yang mengesahkan atau menolak, dengan tanda "(Kapten)" bila diputuskan kapten. Owner dan superadmin tetap bisa mengubah semua keputusan.
+Kapten membuka "Panel kapten" dari halaman absennya. Tampilan "Pengesahan absen" dipakai untuk mengesahkan atau menolak absen crew di acara yang dipegangnya, termasuk lewat tombol "Sahkan semua". Kapten tidak bisa memutuskan absen dirinya sendiri, kapten lain, owner, atau superadmin; absen tersebut diputuskan owner atau superadmin. Kapten hanya bisa membatalkan pengesahan yang ia buat sendiri. Di menu Verifikasi, setiap absen menampilkan siapa yang mengesahkan atau menolak, dengan tanda "(Kapten)" bila diputuskan kapten. Owner dan superadmin tetap bisa mengubah semua keputusan.
+
+Tampilan "Progres crew" menunjukkan jumlah sesi, jam kerja, lembur, dan absen yang masih menunggu pengesahan untuk tiap orang di acara itu. Jam kerja dihitung dari absen yang sudah disahkan di dalam jadwal sesi. Tampilan ini tidak memuat angka upah, tarif, atau slip.
 
 ## Pulang otomatis
 

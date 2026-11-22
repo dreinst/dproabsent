@@ -5,11 +5,9 @@ import { prisma } from "@/lib/prisma";
 import { fmtWaktu, keInput } from "@/lib/waktu";
 import { JEDA_MENIT, JEDA_MIN, JEDA_MAKS, jedaSesi } from "@/lib/aturan";
 import { simpanSesi, hapusSesi } from "@/app/admin/actions";
-import { lepasKapten } from "@/app/admin/aksi-kapten";
 import AdminShell from "@/components/AdminShell";
-import Avatar from "@/components/Avatar";
 import FormAcara from "@/components/FormAcara";
-import PilihKapten from "@/components/PilihKapten";
+import AturKapten from "@/components/AturKapten";
 
 export const dynamic = "force-dynamic";
 
@@ -72,19 +70,16 @@ export default async function AcaraDetailPage({ params, searchParams }) {
     : null;
   if (!acara) notFound();
 
-  // Kapten acara ini, dan crew aktif yang bisa ditunjuk (belum menjadi kapten di acara ini).
-  const [kapten, calon] = await Promise.all([
-    prisma.kaptenAcara.findMany({
-      where: { eventId: acara.id },
-      select: { user: { select: { id: true, name: true, phone: true, avatar: true, active: true } } },
-      orderBy: { user: { name: "asc" } },
-    }),
-    prisma.user.findMany({
-      where: { role: "CREW", active: true, kaptenAcara: { none: { eventId: acara.id } } },
-      select: { id: true, name: true, phone: true },
-      orderBy: { name: "asc" },
-    }),
-  ]);
+  // Semua crew aktif, ditambah kapten acara ini yang akunnya sudah nonaktif. Kapten saat ini di atas, sisanya urut nama.
+  const crew = await prisma.user.findMany({
+    where: { role: "CREW", OR: [{ active: true }, { kaptenAcara: { some: { eventId: acara.id } } }] },
+    select: { id: true, name: true, phone: true, active: true, kaptenAcara: { where: { eventId: acara.id }, select: { userId: true } } },
+    orderBy: { name: "asc" },
+  });
+  const calonKapten = crew
+    .map((c) => ({ id: c.id, name: c.name, akhir: c.phone.slice(-4), nonaktif: !c.active, kapten: c.kaptenAcara.length > 0 }))
+    .sort((x, y) => Number(y.kapten) - Number(x.kapten));
+  const idKapten = calonKapten.filter((c) => c.kapten).map((c) => c.id);
 
   return (
     <AdminShell
@@ -126,35 +121,15 @@ export default async function AcaraDetailPage({ params, searchParams }) {
           <section className="card kapten-kartu" aria-labelledby="judul-kapten">
             <h2 id="judul-kapten">Kapten acara</h2>
             <p className="sub">
-              Kapten mengesahkan absen crew di acara ini melalui Panel kapten. Absen kapten disahkan oleh owner atau superadmin.
+              Centang crew yang menjadi kapten acara ini, lalu simpan. Kapten bisa diganti kapan saja. Kapten mengesahkan absen
+              crew dan melihat progres crew lewat Panel kapten, tanpa melihat upah. Absen kapten disahkan oleh owner atau superadmin.
             </p>
-            {kapten.length === 0 ? (
-              <div className="kapten-kosong">Belum ada kapten untuk acara ini.</div>
-            ) : (
-              <ul className="kapten-daftar">
-                {kapten.map(({ user: k }) => (
-                  <li className="kapten-baris" key={k.id}>
-                    <Avatar id={k.id} nama={k.name} avatar={k.avatar} ukuran={44} />
-                    <div className="grow">
-                      <b>{k.name}</b>
-                      <span className="meta">
-                        HP berakhiran {k.phone.slice(-4)}{k.active ? "" : ". Akun nonaktif"}
-                      </span>
-                    </div>
-                    <form action={lepasKapten}>
-                      <input type="hidden" name="eventId" value={acara.id} />
-                      <input type="hidden" name="userId" value={k.id} />
-                      <button className="btn-ghost btn-kecil" aria-label={`Lepas ${k.name} dari kapten acara`}>Lepas</button>
-                    </form>
-                  </li>
-                ))}
-              </ul>
-            )}
-            {/* key berganti setiap daftar kapten berubah, supaya kotak cari dan pilihan kembali kosong. */}
-            <PilihKapten
-              key={kapten.map(({ user: k }) => k.id).join("-")}
+            {/* key berganti setiap daftar kapten berubah, supaya kotak cari dan centang kembali bersih sesudah simpan. */}
+            <AturKapten
+              key={idKapten.join("-")}
               eventId={acara.id}
-              crew={calon.map((c) => ({ id: c.id, name: c.name, akhir: c.phone.slice(-4) }))}
+              awal={idKapten}
+              crew={calonKapten.map(({ kapten, ...c }) => c)}
             />
           </section>
         </div>

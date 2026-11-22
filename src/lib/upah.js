@@ -153,7 +153,7 @@ export function hitungUpahAcara({ sesi, absen, kapten = [], orang = [], tarif, s
       const k = hitungKapten(milik, tarif);
       hasil.push({
         user, peran: "KAPTEN", sesiDihadiri: k.sesiDihadiri, menitDibayar: 0, menitLembur: 0,
-        jumlahHari: k.jumlahHari, hari: k.hari, upah: k.upah, menunggu: k.menunggu, sesi: [],
+        jumlahHari: k.jumlahHari, hari: k.hari, upah: k.upah, menunggu: k.menunggu, menitTerpotong: 0, sesi: [],
         catatan: catatanKapten(k),
       });
       continue;
@@ -173,6 +173,8 @@ export function hitungUpahAcara({ sesi, absen, kapten = [], orang = [], tarif, s
       jumlahHari: 0, hari: [],
       upah: jumlah("upah"),
       menunggu: jumlah("menunggu"),
+      // Menit yang tidak terhitung karena absen progres terlambat atau terlewat (angka mentah untuk tampilan tanpa uang).
+      menitTerpotong: jumlah("menitTerpotong"),
       sesi: perSesi,
       catatan: catatanCrew({
         masukDitolak: jumlah("masukDitolak"),
