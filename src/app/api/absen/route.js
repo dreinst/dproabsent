@@ -30,6 +30,10 @@ export async function POST(req) {
   if (typeof photo !== "string" || !photo.startsWith("data:image/")) {
     return NextResponse.json({ error: "Foto wajib diambil dari kamera." }, { status: 400 });
   }
+  // Kolom "Yang dikerjakan" wajib diisi di setiap absen yang dikirim crew.
+  if (typeof activity !== "string" || !activity.trim()) {
+    return NextResponse.json({ error: "Mohon isi kolom \"Yang dikerjakan\" terlebih dahulu." }, { status: 400 });
+  }
 
   const session = await prisma.session.findUnique({
     where: { id: Number(sessionId) },

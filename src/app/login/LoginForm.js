@@ -5,16 +5,14 @@ import { useRouter } from "next/navigation";
 import BantuanWa from "@/components/BantuanWa";
 
 // Teks panduan dipakai persis seperti yang ditetapkan pemilik. Jangan diubah tanpa izin.
-const PEMBUKA =
-  "Mohon baca panduan berikut sampai akhir. Setelah panduan selesai dibaca, pernyataan di bawahnya tercentang otomatis dan tombol Masuk dapat digunakan.";
+const PEMBUKA = "Baca panduan ini sampai habis sebelum masuk.";
 const POIN = [
-  "Pastikan Anda berada di lokasi acara saat absen, dengan GPS dan internet menyala. Izinkan akses kamera dan lokasi ketika browser memintanya.",
-  "Setelah masuk, pilih acara Anda, lalu pilih sesi yang bertanda \"Sedang berlangsung\". Absen masuk baru dapat dilakukan setelah jam mulai sesi.",
-  "Tekan \"Absen masuk\", ambil foto langsung dari kamera, isi kolom \"Yang dikerjakan\", lalu tekan \"Kirim\". Absen masuk yang melewati batas toleransi (umumnya 15 menit setelah jam mulai) tercatat terlambat.",
-  "Lakukan absen progres sesuai jarak yang tertera pada kartu sesi (umumnya setiap 60 menit), paling lambat 5 menit setelah waktunya. Aplikasi tidak mengirim notifikasi, jadi pantau hitung mundur pada kartu sesi.",
-  "Pada jam selesai sesi, tekan \"Absen pulang\", ambil foto, isi kegiatan terakhir, lalu tekan \"Kirim\". Apabila belum absen pulang hingga 1 jam setelah sesi selesai, sistem mencatat pulang otomatis dengan keterangan tidak absen pulang.",
-  "Absen di luar radius lokasi tetap tercatat, tetapi ditandai untuk diperiksa. Jam kerja dihitung dari absen yang disahkan kapten atau admin, jadi gunakan foto asli dan isi kegiatan dengan jujur.",
-  "Apabila mengalami kendala saat masuk atau absen, hubungi Andrew melalui tombol bantuan di halaman ini atau tombol \"Hubungi Andrew\" di halaman absen.",
+  "Absen di lokasi acara dengan GPS dan internet menyala. Izinkan kamera dan lokasi saat diminta. Absen dari luar lokasi tetap tercatat, tetapi ditandai.",
+  "Absen masuk di sesi yang bertanda \"Sedang berlangsung\". Lewat 15 menit dari jam mulai (bisa berbeda tiap sesi), absen tercatat terlambat.",
+  "Absen progres sesuai jadwal di kartu sesi, biasanya tiap 60 menit, paling lambat 5 menit setelah waktunya. Tidak ada notifikasi, jadi pantau hitung mundurnya.",
+  "Absen pulang saat sesi selesai. Kalau sampai 1 jam setelah sesi selesai belum absen pulang, sistem mencatat Anda tidak absen pulang.",
+  "Pakai foto asli dan isi \"Yang dikerjakan\" dengan jujur. Jam kerja hanya dihitung dari absen yang disahkan kapten atau admin.",
+  "Ada kendala? Hubungi Andrew lewat tombol bantuan.",
 ];
 const PERNYATAAN = "Saya telah membaca dan memahami panduan absen di atas.";
 

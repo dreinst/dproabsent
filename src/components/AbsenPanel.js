@@ -162,6 +162,10 @@ export default function AbsenPanel({ session, existing, lastAt }) {
   }
 
   async function send() {
+    if (!activity.trim()) {
+      setErr("Mohon isi kolom \"Yang dikerjakan\" terlebih dahulu.");
+      return;
+    }
     setErr(""); setBusy(true);
     try {
       const pos = await ambilPosisi();
@@ -327,6 +331,7 @@ export default function AbsenPanel({ session, existing, lastAt }) {
                   value={activity}
                   onChange={(e) => setActivity(e.target.value)}
                   maxLength={300}
+                  required
                   autoFocus
                 />
               </label>

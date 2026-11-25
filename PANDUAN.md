@@ -7,7 +7,7 @@ Panduan ini untuk superadmin. Bagian crew bisa diteruskan ke tim lapangan.
 ## Masuk
 
 1. Buka web absen di HP. Kamera dan lokasi hanya jalan lewat HTTPS, jadi pakai alamat di atas.
-2. Baca "Panduan absen" di halaman masuk. Isinya tujuh poin dalam satu kotak yang digulir, seperti halaman kebijakan. Begitu kotak itu digulir sampai akhir, pernyataan "Saya telah membaca dan memahami panduan absen di atas." tercentang otomatis dan tombol Masuk bisa dipakai. Kalau centangnya dihapus, tombol Masuk terkunci lagi sampai pernyataan dicentang ulang. Centang tidak disimpan, jadi setiap kali masuk crew membaca ulang panduannya.
+2. Baca "Panduan absen" di halaman masuk. Isinya enam poin singkat dalam satu kotak yang digulir, seperti halaman kebijakan. Begitu kotak itu digulir sampai akhir, pernyataan "Saya telah membaca dan memahami panduan absen di atas." tercentang otomatis dan tombol Masuk bisa dipakai. Kalau centangnya dihapus, tombol Masuk terkunci lagi sampai pernyataan dicentang ulang. Centang tidak disimpan, jadi setiap kali masuk crew membaca ulang panduannya.
 3. Isi Nomor HP yang terdaftar, diketik seperti biasa dengan awalan 08. Contoh: `081234564321`. Awalan 62 atau +62 juga diterima.
 4. Isi password, lalu tekan Masuk.
 
@@ -35,7 +35,7 @@ Layar crew punya satu tombol besar yang berganti sendiri:
 
 Tidak ada notifikasi, jadi crew membuka aplikasinya sendiri untuk melihat hitung mundur.
 
-Setiap absen butuh foto langsung dari kamera dan lokasi GPS. Izinkan keduanya saat browser bertanya. Setelah memotret, crew mengisi kolom "Yang dikerjakan", lalu menekan Kirim. Foto yang sama persis dalam satu sesi ditolak.
+Setiap absen butuh foto langsung dari kamera dan lokasi GPS. Izinkan keduanya saat browser bertanya. Setelah memotret, crew wajib mengisi kolom "Yang dikerjakan", lalu menekan Kirim. Absen tanpa isian itu ditolak. Foto yang sama persis dalam satu sesi ditolak.
 
 Absen di luar radius acara tetap tersimpan, tapi ditandai. Absen progres yang terlewat dicatat saat pulang. Kalau lupa absen pulang, crew masih bisa menyusul selama acaranya aktif. Jam yang tercatat adalah jam saat tombol ditekan, dan absennya diberi catatan berapa menit setelah shift selesai. Riwayat absen bisa dibuka lewat tautan "Lihat riwayat absen saya" di bawah layar.
 
