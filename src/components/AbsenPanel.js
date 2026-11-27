@@ -26,7 +26,7 @@ export default function AbsenPanel({ session, existing, lastAt }) {
   const [ok, setOk] = useState("");
   const [busy, setBusy] = useState(false);
   const [now, setNow] = useState(() => Date.now());
-  const [gps, setGps] = useState("cari"); // cari | ok | ditolak
+  const [gps, setGps] = useState("cari"); // cari | ok | ditolak | gagal
 
   const hasMasuk = existing.some((e) => e.kind === "MASUK");
   const hasPulang = existing.some((e) => e.kind === "PULANG");
@@ -79,7 +79,9 @@ export default function AbsenPanel({ session, existing, lastAt }) {
         };
         setGps("ok");
       },
-      () => setGps("ditolak"),
+      // Hanya kode 1 yang berarti izin ditolak. Kode 2 dan 3 (posisi belum tersedia atau terlalu lama) sering terjadi
+      // di dalam ruangan walaupun izinnya sudah diberikan, dan pemantauan tetap mencoba lagi.
+      (e) => setGps(e.code === 1 ? "ditolak" : "gagal"),
       { enableHighAccuracy: true, maximumAge: 30000, timeout: 20000 }
     );
     return () => navigator.geolocation.clearWatch(id);
@@ -207,6 +209,13 @@ export default function AbsenPanel({ session, existing, lastAt }) {
       {gps === "ditolak" && !hasPulang && (
         <div className="err" style={{ marginBottom: 12 }}>
           Akses lokasi belum diizinkan. Mohon aktifkan GPS dan izinkan akses lokasi di browser agar absen dapat terkirim.
+          <br />Di iPhone: buka Pengaturan, Privasi &amp; Keamanan, Layanan Lokasi, Situs Web Safari, pilih Saat Menggunakan App.
+          Lalu muat ulang halaman ini dan tekan Izinkan.
+        </div>
+      )}
+      {gps === "gagal" && !hasPulang && (
+        <div className="err" style={{ marginBottom: 12 }}>
+          Lokasi belum terbaca. Pastikan GPS menyala, dekati jendela atau area terbuka, lalu tunggu sebentar.
         </div>
       )}
 
