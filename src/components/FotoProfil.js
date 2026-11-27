@@ -116,7 +116,7 @@ export default function FotoProfil({ id, nama, avatar }) {
             {!shot ? (
               <>
                 {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
-                <video ref={videoRef} playsInline muted style={facing === "user" ? { transform: "scaleX(-1)" } : undefined} />
+                <video ref={videoRef} playsInline muted />
                 <div className="profil-bingkai" aria-hidden="true" />
               </>
             ) : (
