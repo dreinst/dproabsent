@@ -50,7 +50,8 @@ export async function POST(req) {
   const sah = await verifyPasswordAsync(password, user?.active ? user.passwordHash : undefined);
   if (!sah) {
     await Promise.all([catatGagal(kunciNomor), catatGagal(kunciIp)]);
-    return NextResponse.json({ error: pakaiNama ? "Nama admin atau password salah. Crew masuk menggunakan nomor HP." : "Nomor HP atau password salah." }, { status: 401 });
+    // Pesan sama untuk nomor dan nama, supaya halaman masuk tidak membocorkan cara masuk owner dan superadmin.
+    return NextResponse.json({ error: "Nomor HP atau password salah." }, { status: 401 });
   }
 
   await hapusCatatan(kunciNomor);

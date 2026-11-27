@@ -135,7 +135,7 @@ export default function LoginForm() {
         </label>
       </section>
       {/* Satu kolom untuk semua akun: crew mengisi nomor HP, owner dan superadmin mengisi nama. Server yang membedakannya. */}
-      <label>Nomor HP atau nama admin</label>
+      <label>Nomor HP</label>
       <input
         type="text"
         placeholder="08xxxxxxxxxx"
