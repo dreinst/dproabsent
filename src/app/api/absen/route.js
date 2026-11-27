@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { distanceMeters } from "@/lib/geo";
 import { simpanFoto, hapusFoto, FotoError, MAKS_BYTE } from "@/lib/foto";
-import { jedaSesi, BATAS_MENIT, TOLERANSI_MS, PULANG_TELAT_MENIT } from "@/lib/aturan";
+import { jedaSesi, jamBukaMasuk, BATAS_MENIT, TOLERANSI_MS, PULANG_TELAT_MENIT } from "@/lib/aturan";
 import { fmtSingkat } from "@/lib/waktu";
 
 const KINDS = ["MASUK", "CHECKPOINT", "PULANG"];
@@ -45,16 +45,18 @@ export async function POST(req) {
 
   const now = new Date();
 
-  // Absen masuk baru dibuka pada jam mulai sesi. TOLERANSI_MS menampung selisih kecil antara jam HP dan server.
-  if (kind === "MASUK" && now.getTime() < session.startAt.getTime() - TOLERANSI_MS) {
+  // Absen masuk dibuka sebelum jam mulai sesi (jamBukaMasuk). TOLERANSI_MS menampung selisih kecil antara jam HP dan server.
+  if (kind === "MASUK" && now.getTime() < jamBukaMasuk(session) - TOLERANSI_MS) {
     return NextResponse.json(
-      { error: `Sesi ini belum dimulai. Absen masuk dibuka pada ${fmtSingkat(session.startAt)} WIB.` },
+      { error: `Absen masuk untuk sesi ini dibuka pada ${fmtSingkat(new Date(jamBukaMasuk(session)))} WIB.` },
       { status: 409 }
     );
   }
 
-  // Titik cek mengikuti jarak sesi (jedaSesi), dihitung sejak absen terakhir (masuk atau titik cek sebelumnya).
+  // Titik cek mengikuti jarak sesi (jedaSesi), dihitung sejak absen terakhir (masuk atau titik cek sebelumnya),
+  // paling awal dari jam mulai sesi. Yang absen masuk lebih awal baru diminta progres satu jeda setelah sesi mulai.
   let terakhir = null;
+  let acuan = 0;
   if (kind === "CHECKPOINT") {
     terakhir = await prisma.absensi.findFirst({
       where: { sessionId: session.id, userId: user.id, kind: { in: ["MASUK", "CHECKPOINT"] } },
@@ -63,7 +65,8 @@ export async function POST(req) {
     if (!terakhir) {
       return NextResponse.json({ error: "Silakan absen masuk terlebih dahulu sebelum absen progres." }, { status: 400 });
     }
-    const jatuhTempo = terakhir.checkedAt.getTime() + jedaSesi(session) * 60000;
+    acuan = Math.max(terakhir.checkedAt.getTime(), session.startAt.getTime());
+    const jatuhTempo = acuan + jedaSesi(session) * 60000;
     if (now.getTime() < jatuhTempo - TOLERANSI_MS) {
       return NextResponse.json({ error: "Belum waktunya absen progres berikutnya." }, { status: 409 });
     }
@@ -122,7 +125,7 @@ export async function POST(req) {
   }
 
   if (kind === "CHECKPOINT") {
-    const batas = terakhir.checkedAt.getTime() + (jedaSesi(session) + BATAS_MENIT) * 60000;
+    const batas = acuan + (jedaSesi(session) + BATAS_MENIT) * 60000;
     if (now.getTime() > batas) {
       status = "TERLAMBAT";
       const telat = Math.round((now.getTime() - batas) / 60000) + BATAS_MENIT;
@@ -142,7 +145,7 @@ export async function POST(req) {
     if (masuk) {
       // Titik cek hanya dihitung sampai jam selesai shift, supaya pulang yang menyusul tidak menambah titik cek terlewat.
       const akhir = Math.min(now.getTime(), session.endAt.getTime());
-      const durationMin = Math.max(0, akhir - masuk.checkedAt.getTime()) / 60000;
+      const durationMin = Math.max(0, akhir - Math.max(masuk.checkedAt.getTime(), session.startAt.getTime())) / 60000;
       const expected = Math.floor(durationMin / jedaSesi(session));
       const actual = await prisma.absensi.count({
         where: { sessionId: session.id, userId: user.id, kind: "CHECKPOINT" },

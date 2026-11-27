@@ -19,6 +19,7 @@
 //
 // Aturan kapten: kalau tercatat sebagai kapten acara, dibayar per hari, bukan per jam.
 // Jumlah hari = banyaknya tanggal WIB berbeda yang memiliki absen masuk yang sah dan tidak ditolak.
+// Absen masuk sebelum jam mulai sesi dihitung di tanggal sesinya mulai.
 
 import { jedaSesi, BATAS_MENIT } from "./aturan.js";
 
@@ -111,7 +112,8 @@ export function hitungKapten(absen, tarif) {
   const perTanggal = new Map();
   for (const a of masuk) {
     if (ditolak(a) || !sudahSah(a)) continue;
-    const tanggal = tanggalWib(a.checkedAt);
+    // Absen masuk dibuka sebelum sesi mulai, jadi absen menjelang tengah malam untuk sesi besok ikut hari sesinya.
+    const tanggal = tanggalWib(a.mulaiSesi ? Math.max(waktu(a.checkedAt), waktu(a.mulaiSesi)) : a.checkedAt);
     if (!perTanggal.has(tanggal)) perTanggal.set(tanggal, { tanggal, masuk: [] });
     perTanggal.get(tanggal).masuk.push(a);
   }
@@ -136,6 +138,7 @@ export function hitungUpahAcara({ sesi, absen, kapten = [], orang = [], tarif, s
   const idSesi = new Set(sesiUrut.map((s) => s.id));
   const idKapten = new Set(kapten);
   const akun = new Map(orang.map((u) => [u.id, u]));
+  const mulaiSesi = new Map(sesiUrut.map((s) => [s.id, s.startAt]));
 
   const absenPerOrang = new Map();
   for (const a of absen) {
@@ -150,7 +153,7 @@ export function hitungUpahAcara({ sesi, absen, kapten = [], orang = [], tarif, s
     const user = akun.get(id) ?? { id, name: `Akun #${id}` };
 
     if (idKapten.has(id)) {
-      const k = hitungKapten(milik, tarif);
+      const k = hitungKapten(milik.map((a) => ({ ...a, mulaiSesi: mulaiSesi.get(a.sessionId) })), tarif);
       hasil.push({
         user, peran: "KAPTEN", sesiDihadiri: k.sesiDihadiri, menitDibayar: 0, menitLembur: 0,
         jumlahHari: k.jumlahHari, hari: k.hari, upah: k.upah, menunggu: k.menunggu, sesi: [],

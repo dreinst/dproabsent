@@ -36,16 +36,16 @@ export default function AbsenPanel({ session, existing, lastAt }) {
 
   // Hitung mundur ke titik cek berikutnya: jarak sesi (session.jedaMenit) sejak absen terakhir, lalu batas BATAS_MENIT.
   // Begitu jam selesai shift tiba, tombol berganti jadi absen pulang.
-  const jatuhTempo = lastAt ? lastAt + session.jedaMenit * 60000 : null;
+  const jatuhTempo = lastAt ? Math.max(lastAt, session.startAt) + session.jedaMenit * 60000 : null;
   const batasAkhir = jatuhTempo ? jatuhTempo + BATAS_MENIT * 60000 : null;
   const shiftSelesai = berjalan && now >= session.endAt;
   let fase = "tunggu";
   if (jatuhTempo && now >= jatuhTempo) fase = now <= batasAkhir ? "saatnya" : "telat";
 
-  // Absen masuk baru dibuka pada jam mulai sesi. Server juga menolak absen masuk sebelum itu.
+  // Absen masuk dibuka sebelum jam mulai sesi (session.bukaAt). Server juga menolak absen masuk sebelum itu.
   // Satu jam terakhir sebelum dibuka ditampilkan sebagai hitung mundur.
-  const belumMulai = !hasMasuk && now < session.startAt;
-  const dekatMulai = belumMulai && session.startAt - now <= 3600000;
+  const belumDibuka = !hasMasuk && now < session.bukaAt;
+  const dekatBuka = belumDibuka && session.bukaAt - now <= 3600000;
 
   // Satu tombol besar: label dan aksinya mengikuti tahap absen.
   let aksi = "MASUK";
@@ -53,21 +53,21 @@ export default function AbsenPanel({ session, existing, lastAt }) {
   // Detik berjalan selama sesi crew ini berlangsung dan dalam satu jam sebelum absen masuk dibuka.
   // Sebelum itu cukup diperiksa tiap 30 detik.
   useEffect(() => {
-    if (!berjalan && !belumMulai) return;
-    const t = setInterval(() => setNow(Date.now()), berjalan || dekatMulai ? 1000 : 30000);
+    if (!berjalan && !belumDibuka) return;
+    const t = setInterval(() => setNow(Date.now()), berjalan || dekatBuka ? 1000 : 30000);
     return () => clearInterval(t);
-  }, [berjalan, belumMulai, dekatMulai]);
+  }, [berjalan, belumDibuka, dekatBuka]);
 
-  // Begitu absen masuk dibuka, muat ulang data halaman supaya label sesi ikut menjadi "Sedang berlangsung".
+  // Begitu absen masuk dibuka, muat ulang data halaman supaya label sesi ikut menjadi "Absen masuk dibuka".
   // Jedanya acak sampai 20 detik supaya ratusan HP tidak memuat ulang pada detik yang sama.
-  const tadiBelumMulai = useRef(belumMulai);
+  const tadiBelumDibuka = useRef(belumDibuka);
   useEffect(() => {
-    const tadi = tadiBelumMulai.current;
-    tadiBelumMulai.current = belumMulai;
-    if (!tadi || belumMulai) return;
+    const tadi = tadiBelumDibuka.current;
+    tadiBelumDibuka.current = belumDibuka;
+    if (!tadi || belumDibuka) return;
     const t = setTimeout(() => router.refresh(), Math.random() * 20000);
     return () => clearTimeout(t);
-  }, [belumMulai, router]);
+  }, [belumDibuka, router]);
 
   // Lokasi dipantau di latar supaya sudah siap saat tombol kirim ditekan.
   useEffect(() => {
@@ -245,17 +245,17 @@ export default function AbsenPanel({ session, existing, lastAt }) {
       ) : (
         <div className="tumpuk">
           {shiftSelesai && <div className="hitung pulang"><span>Shift telah selesai</span><b>Silakan absen pulang</b></div>}
-          {belumMulai && (
-            dekatMulai ? (
-              <div className="hitung tunggu"><span>Absen masuk dibuka dalam</span><b suppressHydrationWarning>{mmss(session.startAt - now)}</b></div>
+          {belumDibuka && (
+            dekatBuka ? (
+              <div className="hitung tunggu"><span>Absen masuk dibuka dalam</span><b suppressHydrationWarning>{mmss(session.bukaAt - now)}</b></div>
             ) : (
-              <div className="hitung mulai"><span>Absen masuk dibuka pada</span><b>{session.mulaiTeks} WIB</b></div>
+              <div className="hitung mulai"><span>Absen masuk dibuka pada</span><b>{session.bukaTeks} WIB</b></div>
             )
           )}
           <button
             className={`tombol-besar ${aksi === "CHECKPOINT" && fase === "saatnya" ? "denyut" : ""}`}
             onClick={() => openCamera(aksi)}
-            disabled={belumMulai || (aksi === "CHECKPOINT" && fase === "tunggu")}
+            disabled={belumDibuka || (aksi === "CHECKPOINT" && fase === "tunggu")}
           >
             {LABEL[aksi]}
           </button>

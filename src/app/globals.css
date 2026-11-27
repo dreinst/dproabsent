@@ -883,6 +883,9 @@ body:has(.menu-hp[open]) { overflow: hidden; }
 .ringkasan-angka b { font-size: 16px; font-weight: 600; color: var(--text); font-variant-numeric: tabular-nums; }
 .ringkasan-angka .perlu { background: #fff4d6; color: #8a5a00; }
 .ringkasan-angka .perlu b { color: #8a5a00; }
+/* Status sesi di ringkasan sesi halaman Verifikasi. Pil ini tanpa angka, jadi teksnya ditengahkan. */
+.ringkasan-angka .status-sesi { align-items: center; }
+.ringkasan-angka .berlangsung { background: var(--langit); color: var(--navy); font-weight: 600; }
 
 /* Progres crew di Panel kapten: tabel di layar lebar, kartu per orang di HP. */
 .kapten-isi .saring-baris + .saring-baris { margin-top: 0; }

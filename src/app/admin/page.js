@@ -2,7 +2,7 @@ import { Prisma } from "@prisma/client";
 import { redirect } from "next/navigation";
 import { getCurrentUser, isAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { fmtSingkat, fmtHari } from "@/lib/waktu";
+import { fmtWaktu, fmtSingkat, fmtHari } from "@/lib/waktu";
 import { MULAI_DATA_BARU } from "@/lib/aturan";
 import PilihAcara from "@/components/PilihAcara";
 import AdminShell, { Cari } from "@/components/AdminShell";
@@ -34,12 +34,36 @@ const belumPulang = (now) => prisma.$queryRaw`
       WHERE p."sessionId" = m."sessionId" AND p."userId" = m."userId" AND p.kind = 'PULANG')
   ORDER BY s."endAt" DESC`;
 
-// Acara yang punya absen di satu periode, beserta jumlahnya, urutan dari absen terbaru.
-const acaraDiPeriode = (wherePeriode) => prisma.$queryRaw`
-  SELECT e.id, e.name, COUNT(*)::int AS n
-  FROM "Absensi" a JOIN "Session" s ON s.id = a."sessionId" JOIN "Event" e ON e.id = s."eventId"
-  WHERE ${wherePeriode === "lama" ? Prisma.sql`a."checkedAt" < ${MULAI_DATA_BARU}` : Prisma.sql`a."checkedAt" >= ${MULAI_DATA_BARU}`}
-  GROUP BY e.id, e.name ORDER BY MAX(a."checkedAt") DESC`;
+// Pilihan acara di satu periode beserta jumlah absennya, urutan dari absen terbaru. Rekap lama hanya memuat acara yang
+// punya absen lama. Data baru juga memuat acara aktif yang belum punya absen (di urutan akhir), supaya owner dan
+// superadmin bisa membuka sesinya sebelum dimulai.
+const acaraDiPeriode = (periode) => periode === "lama"
+  ? prisma.$queryRaw`
+    SELECT e.id, e.name, COUNT(*)::int AS n
+    FROM "Absensi" a JOIN "Session" s ON s.id = a."sessionId" JOIN "Event" e ON e.id = s."eventId"
+    WHERE a."checkedAt" < ${MULAI_DATA_BARU}
+    GROUP BY e.id, e.name ORDER BY MAX(a."checkedAt") DESC`
+  : prisma.$queryRaw`
+    SELECT e.id, e.name, COUNT(a.id)::int AS n
+    FROM "Event" e
+    LEFT JOIN "Session" s ON s."eventId" = e.id
+    LEFT JOIN "Absensi" a ON a."sessionId" = s.id AND a."checkedAt" >= ${MULAI_DATA_BARU}
+    GROUP BY e.id, e.name, e.active
+    HAVING COUNT(a.id) > 0 OR e.active
+    ORDER BY MAX(a."checkedAt") DESC NULLS LAST, e.id DESC`;
+
+// Ringkasan per sesi, termasuk sesi yang belum dimulai atau belum punya absen. Dengan acara terpilih isinya semua sesi
+// acara itu, tanpa acara terpilih isinya semua sesi di acara aktif.
+const ringkasanSesi = (eventId) => prisma.$queryRaw`
+  SELECT s.id, s.jobdesc, s."startAt", s."endAt", e.name AS acara,
+    COUNT(DISTINCT a."userId") FILTER (WHERE a.kind = 'MASUK')::int AS masuk,
+    COUNT(a.id) FILTER (WHERE a."verifiedAt" IS NULL)::int AS belum
+  FROM "Session" s JOIN "Event" e ON e.id = s."eventId" LEFT JOIN "Absensi" a ON a."sessionId" = s.id
+  WHERE ${eventId ? Prisma.sql`s."eventId" = ${eventId}` : Prisma.sql`e.active`}
+  GROUP BY s.id, e.name ORDER BY s."startAt", s.id`;
+
+const statusSesi = (s, now) =>
+  now < new Date(s.startAt) ? "Belum dimulai" : now <= new Date(s.endAt) ? "Sedang berlangsung" : "Selesai";
 
 
 export default async function AdminPage({ searchParams }) {
@@ -67,11 +91,13 @@ export default async function AdminPage({ searchParams }) {
       ] }
     : {};
 
-  const idPulang = (await belumPulang(new Date()))
+  const sekarang = new Date();
+  const idPulang = (await belumPulang(sekarang))
     .filter((r) => (periode === "lama" ? r.checkedAt < MULAI_DATA_BARU : r.checkedAt >= MULAI_DATA_BARU)
       && (!acaraId || r.eventId === acaraId))
     .map((r) => r.id);
-  const [rows, semua, belum, luar, telat] = await Promise.all([
+  const [sesi, rows, semua, belum, luar, telat] = await Promise.all([
+    periode === "baru" ? ringkasanSesi(acaraId) : [],
     prisma.absensi.findMany({
       where: { AND: [wherePeriodeAcara, f === "pulang" ? { id: { in: idPulang } } : SARING[f] || {}, cari] },
       // verifiedBy untuk keterangan "Disahkan oleh" dan "Ditolak oleh" di tiap foto.
@@ -111,6 +137,8 @@ export default async function AdminPage({ searchParams }) {
   };
   const totalPeriode = daftarAcara.reduce((t, a) => t + a.n, 0);
   const kosongPeriode = periode === "lama" ? `Tidak ada absen sebelum ${tglBatas}.` : `Belum ada absen sejak ${tglBatas}.`;
+  // Acara aktif yang belum punya absen tetap bisa dipilih, jadi pesan kosongnya dibedakan.
+  const kosongAcara = acaraId && daftarAcara.find((a) => a.id === acaraId).n === 0;
 
   return (
     <AdminShell
@@ -127,7 +155,7 @@ export default async function AdminPage({ searchParams }) {
         </div>
       </BarisSaring>
 
-      {totalPeriode > 0 && (
+      {daftarAcara.length > 0 && (
         <BarisSaring judul="Acara">
           {daftarAcara.length <= MAKS_CHIP_ACARA ? (
             <div className="saring">
@@ -144,6 +172,29 @@ export default async function AdminPage({ searchParams }) {
             />
           )}
         </BarisSaring>
+      )}
+
+      {(acaraId || sesi.length > 0) && periode === "baru" && (
+        <section className="ringkasan-sesi" aria-label="Ringkasan per sesi">
+          {sesi.length === 0 && <div className="kosong">Acara ini belum memiliki sesi.</div>}
+          {sesi.map((s) => {
+            const status = statusSesi(s, sekarang);
+            return (
+              <div className="ringkasan-baris" key={s.id}>
+                <div className="ringkasan-judul">
+                  <b>{s.jobdesc}</b>
+                  {!acaraId && <span className="meta">{s.acara}</span>}
+                  <span className="meta">{fmtWaktu(s.startAt)} sampai {fmtSingkat(s.endAt)}</span>
+                </div>
+                <div className="ringkasan-angka">
+                  <span className={status === "Sedang berlangsung" ? "status-sesi berlangsung" : "status-sesi"}>{status}</span>
+                  <span><b>{s.masuk}</b> crew absen masuk</span>
+                  <span className={s.belum > 0 ? "perlu" : undefined}><b>{s.belum}</b> absen belum disahkan</span>
+                </div>
+              </div>
+            );
+          })}
+        </section>
       )}
 
       <BarisSaring judul="Status">
@@ -186,7 +237,7 @@ export default async function AdminPage({ searchParams }) {
       ) : (
       <>
 
-      {rows.length === 0 && <div className="kosong">{totalPeriode === 0 ? kosongPeriode : f === "belum" && !q ? "Semua absen di sini sudah disahkan." : "Tidak ada absen yang sesuai."}</div>}
+      {rows.length === 0 && <div className="kosong">{totalPeriode === 0 ? kosongPeriode : kosongAcara ? "Belum ada absen di acara ini." : f === "belum" && !q ? "Semua absen di sini sudah disahkan." : "Tidak ada absen yang sesuai."}</div>}
       {kelompok.map((g) => <KartuAbsen key={g.kunci} user={g.user} session={g.session} items={g.items} />)}
       <div className="meta">Menampilkan {rows.length} absen dari {jumlahCrew} crew{rows.length >= MAKS_ABSEN ? ` (batas ${MAKS_ABSEN} absen terbaru)` : ""}.</div>
       </>

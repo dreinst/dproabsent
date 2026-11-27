@@ -272,6 +272,31 @@ test("kapten: pergantian tanggal mengikuti WIB, bukan UTC", () => {
   assert.equal(hitungKapten([a, b], TARIF).upah, 400000);
 });
 
+test("kapten absen sebelum jam mulai dihitung di tanggal sesinya", () => {
+  // Hari H 5 Des 06:00 sampai 22:00, Loading out 6 Des 00:00 sampai 03:00. Absen masuk dibuka sebelum jam mulai,
+  // jadi kapten absen masuk Loading out pukul 23:15 tanggal 5 Des. Hitungannya tetap tanggal 6, jadi 2 hari = 400.000.
+  const acara = [
+    sesi("06:00", "22:00", { id: 1, tgl: "2026-12-05" }),
+    { id: 2, startAt: j("00:00", "2026-12-06"), endAt: j("03:00", "2026-12-06"), checkpointMinutes: 60 },
+  ];
+  const r = hitungUpahAcara({
+    sesi: acara,
+    absen: [M("05:30", { tgl: "2026-12-05", sessionId: 1 }), M("23:15", { tgl: "2026-12-05", sessionId: 2 })],
+    kapten: [1], tarif: TARIF,
+  });
+  assert.deepEqual(r.orang[0].hari.map((h) => h.tanggal), ["2026-12-05", "2026-12-06"]);
+  assert.equal(r.orang[0].upah, 400000);
+});
+
+test("crew datang awal lalu progres satu jeda setelah mulai: dibayar sejak jam mulai", () => {
+  // Sesi 19:00 sampai 21:00. Masuk 18:10, progres 20:00 (jadwal pertama: 19:00 + 60), pulang 21:00.
+  // Segmen 19:00-20:00 = 60, 20:00-21:00 = 60. Dibayar 120 menit, tidak ada yang terpotong.
+  const s = sesi("19:00", "21:00");
+  const r = hitungSesiCrew(s, [M("18:10"), P("20:00"), K("21:00")], TARIF);
+  assert.equal(r.menitDibayar, 120);
+  assert.equal(r.menitTerpotong, 0);
+});
+
 test("pembulatan ke rupiah terdekat, per sesi", () => {
   // 7 menit dengan tarif 15.500: 7 x 15.500 / 60 = 1.808,33, dibulatkan 1.808.
   assert.equal(upahDariMenit(7, 15500), 1808);

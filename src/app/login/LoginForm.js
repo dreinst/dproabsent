@@ -8,7 +8,7 @@ import BantuanWa from "@/components/BantuanWa";
 const PEMBUKA = "Baca panduan ini sampai habis sebelum masuk.";
 const POIN = [
   "Absen di lokasi acara dengan GPS dan internet menyala. Izinkan kamera dan lokasi saat diminta. Absen dari luar lokasi tetap tercatat, tetapi ditandai.",
-  "Absen masuk di sesi yang bertanda \"Sedang berlangsung\". Lewat 15 menit dari jam mulai (bisa berbeda tiap sesi), absen tercatat terlambat.",
+  "Absen masuk sudah bisa dilakukan 1 jam sebelum jam mulai sesi. Lewat 15 menit dari jam mulai (bisa berbeda tiap sesi), absen tercatat terlambat.",
   "Absen progres sesuai jadwal di kartu sesi, biasanya tiap 60 menit, paling lambat 5 menit setelah waktunya. Tidak ada notifikasi, jadi pantau hitung mundurnya.",
   "Absen pulang saat sesi selesai. Kalau sampai 1 jam setelah sesi selesai belum absen pulang, sistem mencatat Anda tidak absen pulang.",
   "Pakai foto asli dan isi \"Yang dikerjakan\" dengan jujur. Jam kerja hanya dihitung dari absen yang disahkan kapten atau admin.",

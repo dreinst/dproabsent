@@ -4,7 +4,7 @@ import { getCurrentUser, isAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { ambilCache, KUNCI_SESI_AKTIF } from "@/lib/cache";
 import { fmtWaktu, fmtSingkat } from "@/lib/waktu";
-import { jedaSesi } from "@/lib/aturan";
+import { jedaSesi, jamBukaMasuk } from "@/lib/aturan";
 import LogoutButton from "@/components/LogoutButton";
 import AbsenPanel from "@/components/AbsenPanel";
 import FotoProfil from "@/components/FotoProfil";
@@ -108,15 +108,15 @@ export default async function CrewHome() {
 }
 
 // Kelompokkan sesi per acara dari daftar sesi yang sudah dimuat, tanpa query tambahan.
-// Urutan sesi dan acara: sedang berlangsung (0), sudah absen masuk tetapi belum pulang (1),
+// Urutan sesi dan acara: sedang berlangsung atau absen masuknya sudah dibuka (0), sudah absen masuk tetapi belum pulang (1),
 // akan datang (2), lalu sudah berakhir (3). Sesi berurutan 3 dilipat di bawah kartu.
 function kelompokAcara(sessions, now) {
   const peta = new Map();
   for (const s of sessions) {
     const masuk = s.absensi.some((a) => a.kind === "MASUK");
     const pulang = s.absensi.some((a) => a.kind === "PULANG");
-    const jalan = s.startAt <= now && now <= s.endAt;
-    const urut = jalan ? 0 : masuk && !pulang ? 1 : now < s.startAt ? 2 : 3;
+    const aktif = jamBukaMasuk(s) <= now && now <= s.endAt;
+    const urut = aktif ? 0 : masuk && !pulang ? 1 : now < s.startAt ? 2 : 3;
     if (!peta.has(s.eventId)) peta.set(s.eventId, { event: s.event, sesi: [] });
     peta.get(s.eventId).sesi.push({ s, urut });
   }
@@ -136,11 +136,14 @@ function kelompokAcara(sessions, now) {
 // Satu sesi di dalam kartu acara: status, jam, jarak absen progres, dan panel absennya.
 function SesiBlok({ s, now }) {
   const jalan = s.startAt <= now && now <= s.endAt;
+  // Absen masuk sudah dibuka walaupun sesinya belum mulai. Tampil sebagai blok aktif seperti sesi yang berlangsung.
+  const terbuka = now < s.startAt && jamBukaMasuk(s) <= now;
+  const aktif = jalan || terbuka;
   return (
-    <div className={jalan ? "sesi-blok jalan" : "sesi-blok"}>
+    <div className={aktif ? "sesi-blok jalan" : "sesi-blok"}>
       <div className="sesi-info">
-        <div className={jalan ? "mata merah" : "mata"}>
-          {jalan ? "Sedang berlangsung" : now < s.startAt ? "Akan datang" : "Sudah berakhir"}
+        <div className={aktif ? "mata merah" : "mata"}>
+          {jalan ? "Sedang berlangsung" : terbuka ? "Absen masuk dibuka" : now < s.startAt ? "Akan datang" : "Sudah berakhir"}
         </div>
         <h3>{s.jobdesc}</h3>
         <p className="sub">
@@ -152,7 +155,8 @@ function SesiBlok({ s, now }) {
         session={{
           id: s.id,
           startAt: s.startAt.getTime(),
-          mulaiTeks: fmtSingkat(s.startAt),
+          bukaAt: jamBukaMasuk(s),
+          bukaTeks: fmtSingkat(new Date(jamBukaMasuk(s))),
           endAt: s.endAt.getTime(),
           jedaMenit: jedaSesi(s),
           eventName: s.event.name,
